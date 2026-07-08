@@ -29,8 +29,8 @@ class DataBaseEngine:
         )
 
 
-db_helper = DataBaseEngine(
-    url=settings.db.url,
+db_engine = DataBaseEngine(
+    url=str(settings.db.url),
     echo=settings.db.echo,
     pool_pre_ping=settings.db.pool_pre_ping,
     autocommit=settings.db.autocommit,
