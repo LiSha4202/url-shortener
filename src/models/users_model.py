@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship
 from pydantic import EmailStr
 
 from core.database.base import Base
-from .links import Link
+from .links_model import Link
 
 
 class User(Base):

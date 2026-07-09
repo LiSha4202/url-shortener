@@ -5,7 +5,6 @@ class UserModel(BaseModel):
     user: str
     email: str
     password_hashed: str
-    is_active: bool = True
     created_at: int
 
 

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.database.base import Base
 
 if TYPE_CHECKING:
-    from .users import User
+    from .users_model import User
 
 
 class Link(Base):
