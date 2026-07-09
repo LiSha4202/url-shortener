@@ -7,6 +7,8 @@ from utils.case_converter import camel_case_to_snake_case
 
 
 class Base(DeclarativeBase):
+    """База для SQLAlchemy для управления другими шаблонами таблиц"""
+
     __abstract__ = True
 
     metadata = MetaData(
