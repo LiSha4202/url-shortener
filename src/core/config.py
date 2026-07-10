@@ -3,10 +3,26 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class RunConfig(BaseModel):
-    """Конфигурация main файла"""
+    """Конфигурация main.py файла"""
 
     host: str = "0.0.0.0"
     port: int = 8000
+
+
+class LinkSchemaConfig(BaseModel):
+    """Конфигурация значений для core/schemas/link_schema.py файла"""
+
+    # SHORTCODE - Length Configuration
+    shortcode_min_length: int = 4  # Минимальная длина короткой ссылки
+    shortcode_max_length: int = 14  # Максимальная длина короткой ссылки
+
+    # SHORTCODE - EXPIRE IN DAYS Configuration
+    expire_in_days_min_length: int = (
+        1  # Мин. количество дней, за которое ссылка будет действовать
+    )
+    expire_in_days_max_length: int = (
+        365  # Макс. количество дней, за которое ссылка будет действовать
+    )
 
 
 class DataBaseSettings(BaseSettings):
@@ -42,6 +58,7 @@ class Settings(BaseSettings):
 
     run: RunConfig = RunConfig()
     db: DataBaseSettings
+    ls: LinkSchemaConfig = LinkSchemaConfig()
 
 
 settings = Settings()  # type: ignore

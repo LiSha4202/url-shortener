@@ -4,9 +4,14 @@ from typing import Optional, Dict
 from pydantic import Field, BaseModel, HttpUrl
 from pydantic.types import constr
 
+from core.config import settings
+
 # Алиас для валидации кастомной ссылки
 ShortCode = constr(
-    strip_whitespace=True, min_length=4, max_length=14, pattern=r"^[a-zA-Z0-9_-]+$"
+    strip_whitespace=True,
+    min_length=settings.ls.shortcode_min_length,
+    max_length=settings.ls.shortcode_max_length,
+    pattern=r"^[a-zA-Z0-9_-]+$",
 )
 
 
@@ -31,8 +36,8 @@ class LinkCreate(LinkBase):
     )
 
     expires_in_days: Optional[int] = Field(
-        ge=1,  # только положительные числа
-        le=365,  # максимум 1 год
+        ge=settings.ls.expire_in_days_min_length,  # Минимальный срок жизни ссылки
+        le=settings.ls.expire_in_days_max_length,  # Максимальный срок жизни ссылки
         description=("Время истечения ссылки (Опционально)" "По умолчанию не истекает"),
     )
 
