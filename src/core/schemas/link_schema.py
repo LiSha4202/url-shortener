@@ -84,12 +84,12 @@ class LinkStats(BaseModel):
         description="Общее количество кликов по ссылке",
     )
 
-    first_click_at: Optional[datetime] = Field(
+    first_click: Optional[datetime] = Field(
         ...,
         description="Время 1 клика по ссылке",
     )
 
-    last_click: str = Field(
+    last_click: Optional[datetime] = Field(
         ...,
         description="Последний клик по ссылке",
     )
