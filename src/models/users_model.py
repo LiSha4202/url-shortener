@@ -10,6 +10,7 @@ class User(Base):
     __tablename__ = "user"  # type: ignore
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column()
     email: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str] = mapped_column()
     created_at: Mapped[float] = mapped_column()

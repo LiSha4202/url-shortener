@@ -4,12 +4,14 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
+from core.config import settings
+
 
 class UserModel(BaseModel):
     username: str = Field(
         ...,
-        min_length=3,
-        max_length=20,
+        min_length=settings.us.username_min_length,
+        max_length=settings.us.username_max_length,
         description="Имя пользователя (Уникальное)",
     )
     email: EmailStr = Field(
@@ -25,7 +27,7 @@ class UserModel(BaseModel):
 class UserCreate(UserModel):
     password: str = Field(
         ...,
-        min_length=8,
+        min_length=settings.us.password_min_length,
         description="Пароль (Минимум 8 символов)",
     )
 

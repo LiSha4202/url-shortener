@@ -25,6 +25,17 @@ class LinkSchemaConfig(BaseModel):
     )
 
 
+class UserSchemaConfig(BaseModel):
+    """Конфигурация значений для core/schemas/user_schema.py файла"""
+
+    # Username - Length Configuration
+    username_min_length: int = 3  # Минимальная длина никнейма
+    username_max_length: int = 20  # Максимальная длина никнейма
+
+    # Password - Length Configuration
+    password_min_length: int = 8  # Минимальная длина пароля
+
+
 class DataBaseSettings(BaseSettings):
     """Настройки базы данных"""
 
@@ -60,6 +71,7 @@ class Settings(BaseSettings):
     run: RunConfig = RunConfig()
     db: DataBaseSettings
     ls: LinkSchemaConfig = LinkSchemaConfig()
+    us: UserSchemaConfig = UserSchemaConfig()
 
 
 settings = Settings()  # type: ignore
