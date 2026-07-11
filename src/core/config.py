@@ -35,6 +35,7 @@ class DataBaseSettings(BaseSettings):
     max_overflow: int = 10  # Максимальное превышение соединений сверх pool_size
     autocommit: bool = False  # Автоматический коммит (т.е. авто-сохранение)
     autoflush: bool = False  # Авто-флеш (только при commit)
+    expire_on_commit: bool = False  #
 
     """Используется для автоматического подписания ключей в миграциях alembic"""
     naming_convention: dict[str, str] = {

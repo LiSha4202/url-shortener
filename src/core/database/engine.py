@@ -1,4 +1,11 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    async_sessionmaker,
+    AsyncSession,
+    async_scoped_session,
+)
+
+from asyncio import current_task
 
 from core.config import settings
 
@@ -13,6 +20,7 @@ class DataBaseEngine:
         autoflush: bool,
         max_overflow: int,
         pool_size: int,
+        expire_on_commit: bool,
     ) -> None:
         self.engine = create_async_engine(
             url=url,
@@ -22,11 +30,29 @@ class DataBaseEngine:
             pool_pre_ping=pool_pre_ping,
         )
 
-        self.sessionmaker = async_sessionmaker(
+        self.session_factory = async_sessionmaker(
             autocommit=autocommit,
             autoflush=autoflush,
+            expire_on_commit=expire_on_commit,
             bind=self.engine,
         )
+
+    def get_scoped_session(self):
+        session = async_scoped_session(
+            session_factory=self.session_factory,
+            scopefunc=current_task,
+        )
+        return session
+
+    async def session_dependency(self) -> AsyncSession:  # type: ignore
+        async with self.session_factory() as session:
+            yield session  # type: ignore
+            await session.close()
+
+    async def scoped_session_dependency(self) -> AsyncSession:  # type: ignore
+        session = self.get_scoped_session()
+        yield session  # type: ignore
+        await session.close()
 
 
 db_engine = DataBaseEngine(
@@ -37,4 +63,5 @@ db_engine = DataBaseEngine(
     autoflush=settings.db.autoflush,
     max_overflow=settings.db.max_overflow,
     pool_size=settings.db.pool_size,
+    expire_on_commit=settings.db.expire_on_commit,
 )

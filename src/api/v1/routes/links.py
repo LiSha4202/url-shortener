@@ -15,7 +15,12 @@ router = APIRouter(prefix="/links", tags=["links"])
 
 
 @router.post("/", response_model=LinkResponse, status_code=status.HTTP_201_CREATED)
-async def rt_create_link(session: AsyncSession, link_in: LinkCreate):
+async def rt_create_link(
+    link_in: LinkCreate,
+    session: AsyncSession = Depends(
+        db_engine.scoped_session_dependency,
+    ),
+):
     """Роутер: Создание короткой ссылки"""
 
     db_link = await create_link(session, link_in)
@@ -34,7 +39,10 @@ async def rt_create_link(session: AsyncSession, link_in: LinkCreate):
 
 
 @router.get("/{short_code}", include_in_schema=False)
-async def redirect_to_original(session: AsyncSession, short_code: str):
+async def redirect_to_original(
+    short_code: str,
+    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+):
     """Роутер: Редирект по короткой ссылке + обновление статистики"""
 
     db_link = await get_link_by_code(session=session, code=str(short_code))
@@ -62,7 +70,10 @@ async def redirect_to_original(session: AsyncSession, short_code: str):
 
 
 @router.get("/{short_code}/stats", response_model=LinkStats)
-async def get_link_stats(session: AsyncSession, short_code=str):
+async def get_link_stats(
+    short_code=str,
+    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+):
     """Получение статистики по ссылке"""
 
     db_link = await get_link_by_code(session, str(short_code))
