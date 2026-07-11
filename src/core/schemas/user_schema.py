@@ -8,6 +8,12 @@ from core.config import settings
 
 
 class UserModel(BaseModel):
+    """Базовая схема пользователя"""
+
+    id: str = Field(
+        ...,
+        description="ID пользователя",
+    )
     username: str = Field(
         ...,
         min_length=settings.us.username_min_length,
@@ -24,7 +30,21 @@ class UserModel(BaseModel):
     )
 
 
-class UserCreate(UserModel):
+class UserCreate(BaseModel):
+    """Схема создания пользователя"""
+
+    username: str = Field(
+        ...,
+        min_length=settings.us.username_min_length,
+        max_length=settings.us.username_max_length,
+        description="Имя пользователя (Уникальное)",
+    )
+
+    email: EmailStr = Field(
+        ...,
+        description="Почта пользователя",
+    )
+
     password: str = Field(
         ...,
         min_length=settings.us.password_min_length,
@@ -32,8 +52,12 @@ class UserCreate(UserModel):
     )
 
 
-class UserResponse(UserModel):
+class UserResponse(BaseModel):
+    """Схема пользователя для ответа серверу"""
+
     id: int
+    username: str
+    email: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
@@ -42,6 +66,8 @@ class UserResponse(UserModel):
 
 
 class UserUpdate(UserModel):
+    """Схема пользователя для обновления данных"""
+
     username: Optional[str] = Field(
         None,
         description="Новое имя пользователя",

@@ -21,7 +21,7 @@ async def rt_create_link(
         db_engine.scoped_session_dependency,
     ),
 ):
-    """Роутер: Создание короткой ссылки"""
+    """Создание короткой ссылки"""
 
     db_link = await create_link(session, link_in)
     rt_short_url = (
@@ -43,7 +43,7 @@ async def redirect_to_original(
     short_code: str,
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
-    """Роутер: Редирект по короткой ссылке + обновление статистики"""
+    """Редирект по короткой ссылке + обновление статистики"""
 
     db_link = await get_link_by_code(session=session, code=str(short_code))
     if not db_link:

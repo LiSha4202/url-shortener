@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from core.database.base import Base
@@ -12,10 +14,10 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column()
     email: Mapped[str] = mapped_column(unique=True)
-    hashed_password: Mapped[str] = mapped_column()
-    created_at: Mapped[float] = mapped_column()
+    password: Mapped[str] = mapped_column()
+    created_at: Mapped[float] = mapped_column(default=datetime)
 
-    link: Mapped[list["Link"]] = relationship(  # Связь Many-to-One
+    links: Mapped[list["Link"]] = relationship(  # Связь Many-to-One
         back_populates="user",
         cascade="all, delete-orphan",
     )

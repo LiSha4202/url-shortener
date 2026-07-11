@@ -5,8 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class RunConfig(BaseModel):
     """Конфигурация main.py файла"""
 
-    host: str = "0.0.0.0"
-    port: int = 8000
+    host: str = "0.0.0.0"  # IP-адрес сервера
+    port: int = 8000  # Порт
+    reload: bool = True  # Автоматическая перезагрузка сервера при изменении кода
 
 
 class LinkSchemaConfig(BaseModel):

@@ -27,7 +27,7 @@ class LinkBase(BaseModel):
 class LinkCreate(LinkBase):
     """Модель для создания ссылки"""
 
-    custom_code: Optional[ShortCode] = Field(  # type: ignore
+    short_code: Optional[ShortCode] = Field(  # type: ignore
         None,
         description=(
             "Уникальный сокращённый код URL для оригинального URL"
@@ -35,7 +35,7 @@ class LinkCreate(LinkBase):
         ),
     )
 
-    expires_in_days: Optional[int] = Field(
+    expires_at: Optional[int] = Field(  # Измеряется в днях
         ge=settings.ls.expire_in_days_min_length,  # Минимальный срок жизни ссылки
         le=settings.ls.expire_in_days_max_length,  # Максимальный срок жизни ссылки
         description=("Время истечения ссылки (Опционально)" "По умолчанию не истекает"),

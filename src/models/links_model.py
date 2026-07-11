@@ -22,7 +22,7 @@ class Link(Base):
     original_url: Mapped[str] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
     expires_at: Mapped[datetime] = mapped_column()
-    created_on: Mapped[datetime] = mapped_column()
+    created_on: Mapped[datetime] = mapped_column(default=datetime.utcnow())
     clicks_count: Mapped[int] = mapped_column(default=0)
 
     # Поля для статистики (Опционально)
@@ -37,6 +37,6 @@ class Link(Base):
     )
 
     user: Mapped["User | None"] = relationship(  # Связь Many-to-One
-        back_populates="link",
+        back_populates="links",
         lazy="select",
     )
