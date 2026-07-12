@@ -37,17 +37,19 @@ class UserSchemaConfig(BaseModel):
     password_min_length: int = 8  # Минимальная длина пароля
 
 
-class DataBaseSettings(BaseSettings):
+class DataBaseSettings(BaseModel):
     """Настройки базы данных"""
 
     url: PostgresDsn  # (DSN - Data Source Name) - Информация для подключения к базе данных, т.е. ссылка на базу данных (далее в Settings будут его настройки )
     echo: bool = False  # Логирование SQL-запросов (от слова Лог - запись)
     pool_pre_ping: bool = True  # Проверка "жизни" соединения
-    pool_size: int = 5  # Размер пула соединений (активных)
+    pool_size: int = (
+        5  # Размер пула соединений (активных) Пул - предварительно подготовленный набор соединений к БД
+    )
     max_overflow: int = 10  # Максимальное превышение соединений сверх pool_size
     autocommit: bool = False  # Автоматический коммит (т.е. авто-сохранение)
     autoflush: bool = False  # Авто-флеш (только при commit)
-    expire_on_commit: bool = False  #
+    expire_on_commit: bool = False  # Аннулирование значений после сохранения в БД
 
     """Используется для автоматического подписания ключей в миграциях alembic"""
     naming_convention: dict[str, str] = {
@@ -60,10 +62,10 @@ class DataBaseSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
-    """Основной класс, принимающий все классы из этого файла для использования в других файлах"""
+    """Основной класс, принимающий все классы из файла config.py для использования в других файлах"""
 
     model_config = SettingsConfigDict(  # Настройки DSN
-        env_file=".env",  # Файл с переменными окружения
+        env_file=(".env"),  # Файл с переменными окружения
         case_sensitive=False,  # Чувствительность к регистру
         env_nested_delimiter="__",  # Разделение
         env_prefix="APP_CONFIG__",  # Префикс, т.е. начало всех переменных

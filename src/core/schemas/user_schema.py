@@ -24,7 +24,7 @@ class UserModel(BaseModel):
         ...,
         description="Почта пользователя",
     )
-    created_at: datetime = Field(
+    created_at: float = Field(
         ...,
         description="Время создания аккаунта пользователя",
     )
@@ -58,7 +58,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: float
 
     class Config:
         from_attributes = True  # В Pydantic V2: вместо orm_mode=True
