@@ -14,9 +14,11 @@ COPY poetry.lock ./
 
 RUN poetry install --no-root
 
-COPY src/ ./src/
-COPY .env ./
+COPY . . 
 
 WORKDIR /app
 
-CMD ["sh", "-c", "python /app/src/main.py"]
+RUN chmod +x prestart.sh
+
+ENTRYPOINT ["./prestart.sh"]
+CMD ["python", "/app/src/main.py"]

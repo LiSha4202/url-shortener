@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from typing import TYPE_CHECKING, Optional, Dict, Any
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.database.base import Base
+from core.database.base import Base
 
 if TYPE_CHECKING:
     from .users_model import User

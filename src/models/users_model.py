@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, func
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
-from src.core.database.base import Base
+from core.database.base import Base
 from .links_model import Link
 
 
