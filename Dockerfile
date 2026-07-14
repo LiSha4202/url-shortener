@@ -17,4 +17,6 @@ RUN poetry install --no-root
 COPY src/ ./src/
 COPY .env ./
 
-CMD ["python", "src/main.py"]
+WORKDIR /app
+
+CMD ["sh", "-c", "python /app/src/main.py"]
