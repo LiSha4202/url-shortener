@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.links_model import Link
-from core.schemas.link_schema import LinkCreate
+from src.core.schemas.link_schema import LinkCreate
 
 
 async def create_link(session: AsyncSession, link_data: LinkCreate):

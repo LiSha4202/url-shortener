@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
-from core.config import settings
+from src.core.config import settings
 
 
 class UserModel(BaseModel):

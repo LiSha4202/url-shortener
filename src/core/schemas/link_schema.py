@@ -4,7 +4,7 @@ from typing import Optional, Dict
 from pydantic import Field, BaseModel, HttpUrl
 from pydantic.types import constr
 
-from core.config import settings
+from src.core.config import settings
 
 # Алиас для валидации кастомной ссылки
 ShortCode = constr(

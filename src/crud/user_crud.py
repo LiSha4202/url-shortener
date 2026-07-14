@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.users_model import User  # SQLAlchemy модель
-from core.schemas.user_schema import UserCreate  # Pydantic схема
+from src.core.schemas.user_schema import UserCreate  # Pydantic схема
 
 
 async def create_user(session: AsyncSession, user: UserCreate):
