@@ -9,14 +9,6 @@ from src.core.database.engine import db_engine
 
 from src.api import router as v1_routes
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with db_engine.engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-
-
 app = FastAPI()
 
 app.include_router(v1_routes)  # Подключение API роутера (src/api/v1/routes)
