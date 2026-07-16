@@ -24,7 +24,7 @@ class Link(Base):
     original_url: Mapped[str] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
     expires_at: Mapped[datetime] = mapped_column()
-    created_on: Mapped[datetime] = mapped_column(default=datetime.utcnow())
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     # Поля для статистики (Опционально)
     first_click: Mapped[datetime] = mapped_column(nullable=True)

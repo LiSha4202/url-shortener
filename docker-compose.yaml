@@ -6,6 +6,9 @@ services:
       dockerfile: ./Dockerfile
     environment:
       APP_CONFIG__DB__URL: postgresql+asyncpg://user:password@pg:5432/shortener
+    volumes:
+      - ./src:/app/src
+      - ./alembic:/app/alembic
     ports:
       - "8000:8000"
     depends_on:

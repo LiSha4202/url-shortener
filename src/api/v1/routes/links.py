@@ -14,8 +14,10 @@ from models.links_model import Link
 router = APIRouter(prefix="/links", tags=["links"])
 
 
-@router.post("/", response_model=LinkResponse, status_code=status.HTTP_201_CREATED)
-async def rt_create_link(
+@router.post(
+    "/create", response_model=LinkResponse, status_code=status.HTTP_201_CREATED
+)
+async def create_new_link(
     link_in: LinkCreate,
     session: AsyncSession = Depends(
         db_engine.scoped_session_dependency,
@@ -32,9 +34,8 @@ async def rt_create_link(
         short_code=db_link.short_code,
         short_url=rt_short_url,
         original_url=str(db_link.original_url),
-        clicks_count=db_link.clicks_count,
-        created_at=db_link.created_on,
-        expired_at=db_link.expires_at,
+        created_at=db_link.created_at,
+        expires_at=db_link.expires_at,
     )
 
 
@@ -85,7 +86,7 @@ async def get_link_stats(
 
     return LinkStats(
         short_code=db_link.short_code,
-        total_clicks_count=db_link.clicks_count,
+        clicks_count=db_link.clicks_count,
         first_click=db_link.first_click,
         last_click=db_link.last_click,
         clicks_by_day=db_link.clicks_by_day,

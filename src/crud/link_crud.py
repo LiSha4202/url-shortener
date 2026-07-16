@@ -1,4 +1,6 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,11 +9,25 @@ from models.links_model import Link
 from core.schemas.link_schema import LinkCreate
 
 
-async def create_link(session: AsyncSession, link_data: LinkCreate):
+async def create_link(
+    session: AsyncSession, link_data: LinkCreate, user_id: Optional[int] = None
+):
     """Создание новой ссылки"""
 
     link_dict = link_data.model_dump()
-    link_dict["original_url"] = str(link_dict["original_url"])
+    link_dict["original_url"] = str(
+        link_dict["original_url"]
+    )  # Переводим тип данных с HTTPUrl на строку для корректной работы sqlalchemy
+
+    if link_data.expires_at:
+        link_dict["expires_at"] = datetime.utcnow() + timedelta(
+            days=link_data.expires_at  # type: ignore
+        )
+    else:
+        link_dict["expires_at"] = None  # По умолчанию - бессрочная ссылка
+
+    if user_id is not None:
+        link_dict["user_id"] = user_id
 
     new_link = Link(**link_dict)
     session.add(new_link)

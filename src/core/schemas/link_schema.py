@@ -36,6 +36,7 @@ class LinkCreate(LinkBase):
     )
 
     expires_at: Optional[int] = Field(  # Измеряется в днях
+        default=None,
         ge=settings.ls.expire_in_days_min_length,  # Минимальный срок жизни ссылки
         le=settings.ls.expire_in_days_max_length,  # Максимальный срок жизни ссылки
         description=("Время истечения ссылки (Опционально)" "По умолчанию не истекает"),
@@ -65,7 +66,7 @@ class LinkResponse(BaseModel):
         description="Время создания короткой ссылки",
     )
 
-    expired_at: Optional[datetime] = Field(
+    expires_at: Optional[datetime] = Field(
         None,
         description="(необязательно) Время истечения срока действия",
     )
