@@ -1,10 +1,14 @@
 from datetime import datetime
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import DateTime, func
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from core.database.base import Base
-from .links_model import Link
+
+if TYPE_CHECKING:
+    from .links_model import Link
 
 
 class User(Base):
@@ -22,3 +26,9 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    def __str__(self):
+        return f"{self.__class__.__name__}(id={self.id}, username={self.username!r})"
+
+    def __repr__(self):
+        return str(self)

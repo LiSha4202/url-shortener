@@ -60,11 +60,6 @@ class LinkResponse(BaseModel):
         description="Оригинальный URL",
     )
 
-    clicks_count: int = Field(
-        ...,
-        description="Количество кликов по короткому URL",
-    )
-
     created_at: datetime = Field(
         default_factory=datetime.utcnow,
         description="Время создания короткой ссылки",
@@ -84,7 +79,7 @@ class LinkStats(BaseModel):
         description="Уникальный короткий код для ссылки",
     )
 
-    total_clicks_count: int = Field(
+    clicks_count: int = Field(
         ...,
         description="Общее количество кликов по ссылке",
     )

@@ -10,7 +10,10 @@ from core.schemas.link_schema import LinkCreate
 async def create_link(session: AsyncSession, link_data: LinkCreate):
     """Создание новой ссылки"""
 
-    new_link = Link(**link_data.model_dump())
+    link_dict = link_data.model_dump()
+    link_dict["original_url"] = str(link_dict["original_url"])
+
+    new_link = Link(**link_dict)
     session.add(new_link)
     await session.commit()
     return new_link

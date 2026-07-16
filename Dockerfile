@@ -2,6 +2,7 @@ FROM python:3.13.2-bookworm
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH=/app/src
 
 WORKDIR /app
 
@@ -17,7 +18,6 @@ RUN poetry install --no-root
 COPY . . 
 
 WORKDIR /app
-
 RUN chmod +x prestart.sh
 
 ENTRYPOINT ["./prestart.sh"]
