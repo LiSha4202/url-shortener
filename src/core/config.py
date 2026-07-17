@@ -61,6 +61,20 @@ class DataBaseSettings(BaseModel):
     }
 
 
+class JWTSettings(BaseModel):
+    """Настройки JWT-аутентификации"""
+
+    # JWT - Secret key
+    jwt_secret_key: str
+
+    # JWT - Алгоритм шифрования
+    algorithm: str = "HS256"
+
+    # JWT - Срок действия вида токенов
+    access_token_expire_minutes: int = 30  # Access-Token при входе в систему (МИНУТ)
+    refresh_token_expire_days: int = 7  # Refresh-token для обновления Access-T (ДНИ.)
+
+
 class Settings(BaseSettings):
     """Основной класс, принимающий все классы из файла config.py для использования в других файлах"""
 
@@ -75,6 +89,7 @@ class Settings(BaseSettings):
     db: DataBaseSettings
     ls: LinkSchemaConfig = LinkSchemaConfig()
     us: UserSchemaConfig = UserSchemaConfig()
+    jwt: JWTSettings
 
 
 settings = Settings()  # type: ignore
