@@ -40,7 +40,7 @@ class UserSchemaConfig(BaseModel):
 class DataBaseSettings(BaseModel):
     """Настройки базы данных"""
 
-    url: PostgresDsn  # (DSN - Data Source Name) - Информация для подключения к базе данных, т.е. ссылка на базу данных (далее в Settings будут его настройки )
+    url: PostgresDsn  # (DSN - Data Source Name) - Информация для подключения к базе данных, т.е. ссылка на базу данных
     echo: bool = False  # Логирование SQL-запросов (от слова Лог - запись)
     pool_pre_ping: bool = True  # Проверка "жизни" соединения
     pool_size: int = (
@@ -78,7 +78,7 @@ class JWTSettings(BaseModel):
 class Settings(BaseSettings):
     """Основной класс, принимающий все классы из файла config.py для использования в других файлах"""
 
-    model_config = SettingsConfigDict(  # Настройки DSN
+    model_config = SettingsConfigDict(  # Настройки для добычи данных из .env
         env_file=(".env"),  # Файл с переменными окружения
         case_sensitive=False,  # Чувствительность к регистру
         env_nested_delimiter="__",  # Разделение
