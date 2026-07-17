@@ -19,9 +19,9 @@ async def get_current_user(
     user = await get_user_by_email(session, credentials.username)
 
     if not user:
-        get_401_exception()
+        get_401_exception(header_type="Basic")
 
     if not verify_password(credentials.password, user.password):  # type: ignore
-        get_401_exception()
+        get_401_exception(header_type="Basic")
 
     return user

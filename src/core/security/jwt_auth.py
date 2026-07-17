@@ -55,8 +55,8 @@ async def authentificate_user(
 
     user = await get_user_by_email(session, email)
     if not user:
-        get_401_exception()
+        get_401_exception(header_type="Bearer")
     if not verify_password(password, user.password):  # type: ignore
-        get_401_exception()
+        get_401_exception(header_type="Bearer")
 
     return user
