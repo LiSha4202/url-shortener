@@ -26,6 +26,12 @@ async def get_user_by_id(session: AsyncSession, id: int) -> User | None:
     return await session.get(User, id)
 
 
+async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
+    """Нахождение пользователя по его email"""
+
+    return await session.get(User, email)
+
+
 async def get_all_users(session: AsyncSession) -> list[User]:
     """Получение всех пользователей"""
 

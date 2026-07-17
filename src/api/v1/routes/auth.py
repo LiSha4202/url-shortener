@@ -2,9 +2,12 @@ from fastapi import Depends, HTTPException, APIRouter, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database.engine import db_engine
+from core.schemas.user_schema import UserCreate
+from core.security.base_auth import get_current_user
+
+from models.users_model import User
 
 from crud.user_crud import create_user
-from core.schemas.user_schema import UserCreate
 
 router = APIRouter(prefix="/auth", tags=["authentification"])
 
@@ -29,3 +32,8 @@ async def login():
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Login not implemented yet",
     )
+
+
+@router.get("/me")
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
