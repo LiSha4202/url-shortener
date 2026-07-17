@@ -16,7 +16,8 @@ dependencies = [
     "aiohttp (>=3.14.1,<4.0.0)",
     "alembic[sqlalchemy] (>=1.18.5,<2.0.0)",
     "pydantic-settings (>=2.14.2,<3.0.0)",
-    "passlib (>=1.7.4,<2.0.0)"
+    "passlib[argon2] (>=1.7.4,<2.0.0)",
+    "bcrypt (>=5.0.0,<6.0.0)"
 ]
 
 
