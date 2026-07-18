@@ -25,7 +25,7 @@ def create_access_token(
     expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
 ):
     """Создание Access токена"""
-    create_jwt_token(
+    return create_jwt_token(
         data=data,
         expires_time=expires_minutes,
         jwt_algorithm=ALGORITHM,
@@ -40,7 +40,7 @@ def create_refresh_token(
 ):
     """Создание Refresh токена"""
 
-    create_jwt_token(
+    return create_jwt_token(
         data=data,
         expires_time=expires_days,
         jwt_algorithm=ALGORITHM,
