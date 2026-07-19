@@ -7,6 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database.engine import db_engine
 from core.schemas.link_schema import LinkCreate, LinkResponse, LinkStats
 from core.config import settings
+from core.exceptions import (
+    exc_link_404_not_found,
+    exc_link_410_gone,
+    exc_log_click_500_server_error,
+)
 
 from crud.link_crud import create_link, get_link_by_code, increment_click_count
 from models.links_model import Link
@@ -48,24 +53,15 @@ async def redirect_to_original(
 
     db_link = await get_link_by_code(session=session, code=str(short_code))
     if not db_link:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Link not found",
-        )
+        return exc_link_404_not_found()
 
     # Провека на истёкшие ссылки
     if (db_link.expires_at) and db_link.expires_at < datetime.utcnow():
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="Link expired",
-        )
+        return exc_link_410_gone()
 
     # Увеличение счётчика кликов
     if not increment_click_count(session, short_code):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to log click",
-        )
+        return exc_log_click_500_server_error()
 
     return RedirectResponse(url=db_link.original_url)
 
@@ -79,10 +75,7 @@ async def get_link_stats(
 
     db_link = await get_link_by_code(session, str(short_code))
     if not db_link:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Link not found",
-        )
+        return exc_link_404_not_found()
 
     return LinkStats(
         short_code=db_link.short_code,
