@@ -14,8 +14,6 @@ from core.security.jwt_auth import (
     authentificate_user,
     create_access_token,
     create_refresh_token,
-    REFRESH_TOKEN_EXPIRES_DAYS,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 
 from models.users_model import User
@@ -45,8 +43,8 @@ async def login_for_access_token(
     """Аутентификация и получение JWT токенов"""
     user = await authentificate_user(session, form_data.username, form_data.password)
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRES_DAYS)
+    access_token_expires = timedelta(minutes=settings.jwt.access_token_expire_minutes)
+    refresh_token_expires = timedelta(days=settings.jwt.refresh_token_expire_days)
 
     access_token = create_access_token(
         data={"sub": user.email},  # type: ignore
