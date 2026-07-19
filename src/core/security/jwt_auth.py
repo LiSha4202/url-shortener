@@ -7,12 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 from core.exceptions import get_401_exception
 
-from core.security.create_jwt_token import (
+from utils.create_jwt_token import (
     create_access_jwt_token,
     create_refresh_jwt_token,
 )
 
-from crud.hash_password import verify_password
+from utils.hash_password import verify_password
 from crud.user_crud import get_user_by_email
 from models.users_model import User
 
