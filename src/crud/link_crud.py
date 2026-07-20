@@ -6,6 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.links_model import Link
+
+from core.config import settings
 from core.schemas.link_schema import LinkCreate
 
 
@@ -14,24 +16,31 @@ async def create_link(
 ):
     """Создание новой ссылки"""
 
-    link_dict = link_data.model_dump()
-    link_dict["original_url"] = str(
+    link_dict = link_data.model_dump()  # Создаем словарь из модели
+    link_dict["original_url"] = str(  # И модифицируем его
         link_dict["original_url"]
     )  # Переводим тип данных с HTTPUrl на строку для корректной работы sqlalchemy
 
     if link_data.expires_at:
         link_dict["expires_at"] = datetime.utcnow() + timedelta(
             days=link_data.expires_at  # type: ignore
-        )
+        )  # Устанавливаем срок жизни ссылки
     else:
         link_dict["expires_at"] = None  # По умолчанию - бессрочная ссылка
 
+    # Явно задаем short_url
+    link_dict["short_url"] = (
+        f"http://{settings.run.host}:{settings.run.port}/{link_dict['short_code']}"
+    )
+
+    # Добавляем данные о пользователе, если они указаны
     if user_id is not None:
         link_dict["user_id"] = user_id
 
     new_link = Link(**link_dict)
     session.add(new_link)
     await session.commit()
+
     return new_link
 
 

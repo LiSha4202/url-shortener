@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, Dict
 
-from pydantic import Field, BaseModel, HttpUrl
+from pydantic import Field, BaseModel, HttpUrl, computed_field
 from pydantic.types import constr
 
 from core.config import settings
@@ -54,6 +54,7 @@ class LinkResponse(BaseModel):
     short_url: str = Field(
         ...,
         description="Полный URL с укороченной ссылкой",
+        exclude=True,
     )
 
     original_url: str = Field(
@@ -70,6 +71,12 @@ class LinkResponse(BaseModel):
         None,
         description="(необязательно) Время истечения срока действия",
     )
+
+    @computed_field
+    @property
+    def full_short_url(self) -> str:
+        """Полный URL с короткой ссылкой"""
+        return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
 
 
 class LinkStats(BaseModel):
