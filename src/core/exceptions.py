@@ -28,3 +28,9 @@ def exc_log_click_500_server_error():
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Failed to log click",
     )
+
+
+def exc_short_code_existing(shortcode: str):
+    raise ValueError(
+        f"Short code '{shortcode}' is already in use",
+    )

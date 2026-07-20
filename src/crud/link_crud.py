@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.links_model import Link
 
 from core.config import settings
+from core.exceptions import exc_short_code_existing
 from core.schemas.link_schema import LinkCreate
 
 from utils.base62 import generaste_short_code
@@ -24,7 +25,7 @@ async def create_link(
 
     if not link_dict.get("short_code"):
         while True:
-            short_code = generaste_short_code(length=8)
+            short_code = generaste_short_code(length=settings.ls.shortcode_max_length)
             # Проверяем, что код не занят
             existings = await get_link_by_code(session, short_code)
             if not existings:
@@ -34,9 +35,7 @@ async def create_link(
         # Проверяем не занят ли кастомны код
         existing = await get_link_by_code(session, link_dict["short_code"])
         if existing:
-            raise ValueError(
-                f"Short code '{link_dict['short_code']}' is already in use"
-            )
+            raise exc_short_code_existing(shortcode=link_dict["short_code"])
 
     if link_data.expires_at:
         link_dict["expires_at"] = datetime.utcnow() + timedelta(
