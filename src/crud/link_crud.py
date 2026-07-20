@@ -10,16 +10,33 @@ from models.links_model import Link
 from core.config import settings
 from core.schemas.link_schema import LinkCreate
 
+from utils.base62 import generaste_short_code
+
 
 async def create_link(
     session: AsyncSession, link_data: LinkCreate, user_id: Optional[int] = None
 ):
     """Создание новой ссылки"""
-
     link_dict = link_data.model_dump()  # Создаем словарь из модели
     link_dict["original_url"] = str(  # И модифицируем его
         link_dict["original_url"]
     )  # Переводим тип данных с HTTPUrl на строку для корректной работы sqlalchemy
+
+    if not link_dict.get("short_code"):
+        while True:
+            short_code = generaste_short_code(length=8)
+            # Проверяем, что код не занят
+            existings = await get_link_by_code(session, short_code)
+            if not existings:
+                link_dict["short_code"] = short_code
+                break
+    else:
+        # Проверяем не занят ли кастомны код
+        existing = await get_link_by_code(session, link_dict["short_code"])
+        if existing:
+            raise ValueError(
+                f"Short code '{link_dict['short_code']}' is already in use"
+            )
 
     if link_data.expires_at:
         link_dict["expires_at"] = datetime.utcnow() + timedelta(
