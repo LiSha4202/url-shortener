@@ -47,7 +47,9 @@ async def create_link(
 async def get_link_by_code(session: AsyncSession, code: str) -> Link | None:
     """Получение ссылки по его короткому коду"""
 
-    return await session.get(Link, code)
+    stmt = select(Link).where(Link.short_code == code)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 async def get_all_links(session: AsyncSession) -> list[Link]:
