@@ -1,11 +1,17 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database.engine import db_engine
-from core.schemas.link_schema import LinkCreate, LinkResponse, LinkStats
+from core.schemas.link_schema import (
+    LinkCreate,
+    LinkResponse,
+    LinkStats,
+    LinkStatsAll,
+    LinkStatsTop,
+)
 from core.config import settings
 from core.exceptions import (
     exc_link_404_not_found,
@@ -13,8 +19,13 @@ from core.exceptions import (
     exc_log_click_500_server_error,
 )
 
-from crud.link_crud import create_link, get_link_by_code, increment_click_count
-from models.links_model import Link
+from crud.link_crud import (
+    create_link,
+    get_link_by_code,
+    increment_click_count,
+    get_links_stats_all,
+    get_link_stats_top,
+)
 
 router = APIRouter(prefix="/links", tags=["links"])
 
@@ -84,3 +95,21 @@ async def get_link_stats(
         last_click=db_link.last_click,
         clicks_by_day=db_link.clicks_by_day,
     )
+
+
+@router.get("/stats/all", response_model=LinkStatsAll)
+async def get_all_links_stats(
+    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+):
+    """Получение общей статистики по всем ссылкам"""
+    return await get_links_stats_all(session)
+
+
+@router.get("/stats/top", response_model=list[LinkStatsTop])
+async def get_top_links_stats(
+    limit: int = 10,
+    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+):
+    """Получение топ популярных ссылок"""
+
+    return await get_link_stats_top(session, limit)

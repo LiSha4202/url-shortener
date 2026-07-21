@@ -106,3 +106,57 @@ class LinkStats(BaseModel):
         default_factory=dict,
         description="Количество переходов за день",
     )
+
+
+class LinkStatsAll(BaseModel):
+    """Общая статистика по всем ссылкам"""
+
+    total_clicks: int = Field(
+        ...,
+        description="Общее количество кликов по всем ссылкам",
+    )
+
+    total_links: int = Field(
+        ...,
+        description="Общее количество ссылок",
+    )
+
+    active_links: int = Field(
+        ...,
+        description="Количество активных (не удаленных)ссылок",
+    )
+
+    expired_links: int = Field(
+        ...,
+        description="Количество просроченых (удаленных) ссылок",
+    )
+
+    class Config:
+        from_attributes = True
+
+
+class LinkStatsTop(BaseModel):
+    """Топ популярных ссылок"""
+
+    short_code: str = Field(
+        ...,
+        description="Короткий код ссылки",
+    )
+
+    original_url: str = Field(
+        ...,
+        description="Оригинальная ссылка",
+    )
+
+    click_count: int = Field(
+        ...,
+        description="Количество кликов по ссылке",
+    )
+
+    created_at: datetime = Field(
+        ...,
+        description="Дата создания ссылки",
+    )
+
+    class Config:
+        from_attributes = True

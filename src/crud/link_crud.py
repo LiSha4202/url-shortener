@@ -2,14 +2,14 @@ from datetime import datetime, date, timedelta
 
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.links_model import Link
 
 from core.config import settings
 from core.exceptions import exc_short_code_existing
-from core.schemas.link_schema import LinkCreate
+from core.schemas.link_schema import LinkCreate, LinkStatsAll, LinkStatsTop
 
 from utils.base62 import generaste_short_code
 
@@ -103,3 +103,60 @@ async def increment_click_count(session: AsyncSession, short_code: str) -> bool:
 
     await session.commit()
     return True
+
+
+async def get_links_stats_all(session: AsyncSession) -> LinkStatsAll:
+    """Получение общей статистики по всем ссылкам"""
+
+    now = datetime.utcnow()
+
+    total_clicks = await session.execute(
+        select(func.sum(Link.clicks_count)).select_from(Link)
+    )
+    total_clicks_sum = total_clicks.scalar_one()
+
+    total_links = await session.execute(select(func.count()).select_from(Link))
+    total_links_count = total_links.scalar_one()
+
+    active_links = await session.execute(
+        select(func.count()).where(
+            Link.expires_at.is_(None) | (Link.expires_at > now),
+        )
+    )
+    active_links_count = active_links.scalar_one()
+
+    expired_links_count = total_links_count - active_links_count
+
+    return LinkStatsAll(
+        total_clicks=total_clicks_sum,
+        total_links=total_links_count,
+        active_links=active_links_count,
+        expired_links=expired_links_count,
+    )
+
+
+async def get_link_stats_top(
+    session: AsyncSession,
+    limit: int,
+) -> list[LinkStatsTop]:
+    """Получение топа популярных ссылок"""
+
+    stmt = (
+        select(Link)
+        .where(Link.clicks_count > 0)
+        .order_by(Link.clicks_count.desc())
+        .limit(limit),
+    )
+
+    result = await session.execute(stmt)  # type: ignore
+    links = result.scalars().all()
+
+    return [
+        LinkStatsTop(
+            short_code=link.short_code,
+            original_url=link.original_url,
+            click_count=link.clicks_count,
+            created_at=link.created_at,
+        )
+        for link in links
+    ]
