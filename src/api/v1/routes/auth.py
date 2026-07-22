@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import Depends, APIRouter, status
+from fastapi import Depends, APIRouter, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -66,3 +66,10 @@ async def login_for_access_token(
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    """Logout: очистка токена"""
+    response.delete_cookie(key="access_token")
+    return {"message": "Successfully logged out"}

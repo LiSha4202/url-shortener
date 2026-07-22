@@ -5,7 +5,7 @@ from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.exceptions import get_401_exception
+from core.exceptions import exc_401_not_val_cred
 
 from utils.create_jwt_token import (
     create_access_jwt_token,
@@ -53,8 +53,16 @@ async def authentificate_user(
 
     user = await get_user_by_email(session, email)
     if not user:
-        return get_401_exception(header_type="Bearer")
+        return exc_401_not_val_cred(header_type="Bearer")
     if not verify_password(password, user.password):  # type: ignore
-        return get_401_exception(header_type="Bearer")
+        return exc_401_not_val_cred(header_type="Bearer")
 
     return user
+
+
+def decode_jwt_token(token: str):
+    """Декодирование JWT-токена"""
+    if token is None:
+        return None
+
+    return jwt.decode(token, key=settings.jwt.jwt_secret_key)
