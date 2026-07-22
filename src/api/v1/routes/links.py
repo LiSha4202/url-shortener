@@ -112,4 +112,4 @@ async def get_top_links_stats(
 ):
     """Получение топ популярных ссылок"""
 
-    return await get_link_stats_top(session, limit)
+    return await get_link_stats_top(session, limit=limit)

@@ -137,18 +137,18 @@ async def get_links_stats_all(session: AsyncSession) -> LinkStatsAll:
 
 async def get_link_stats_top(
     session: AsyncSession,
-    limit: int,
+    limit: int = 10,
 ) -> list[LinkStatsTop]:
     """Получение топа популярных ссылок"""
 
     stmt = (
         select(Link)
-        .where(Link.clicks_count > 0)
+        .where(Link.clicks_count == 0)
         .order_by(Link.clicks_count.desc())
-        .limit(limit),
+        .limit(limit)
     )
 
-    result = await session.execute(stmt)  # type: ignore
+    result = await session.execute(stmt)
     links = result.scalars().all()
 
     return [

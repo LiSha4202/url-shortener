@@ -148,6 +148,12 @@ class LinkStatsTop(BaseModel):
         description="Оригинальная ссылка",
     )
 
+    @computed_field
+    @property
+    def full_short_url(self) -> str:
+        """Полный URL с короткой ссылкой"""
+        return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
+
     click_count: int = Field(
         ...,
         description="Количество кликов по ссылке",
