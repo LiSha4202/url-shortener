@@ -18,6 +18,9 @@ from core.exceptions import (
     exc_link_410_gone,
     exc_log_click_500_server_error,
 )
+from core.security.base_auth import get_current_user
+
+from models.users_model import User
 
 from crud.link_crud import (
     create_link,
@@ -38,10 +41,11 @@ async def create_new_link(
     session: AsyncSession = Depends(
         db_engine.scoped_session_dependency,
     ),
+    current_user: User = Depends(get_current_user),
 ):
     """Создание короткой ссылки"""
 
-    db_link = await create_link(session, link_in)
+    db_link = await create_link(session, link_in, user_id=current_user.id)
     rt_short_url = (
         f"http://{settings.run.host}:{settings.run.port}/{db_link.short_code}"
     )
