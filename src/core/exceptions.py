@@ -31,6 +31,7 @@ def exc_log_click_500_server_error():
 
 
 def exc_short_code_existing(shortcode: str):
-    raise ValueError(
-        f"Short code '{shortcode}' is already in use",
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=f"Short code '{shortcode}' is already in use",
     )
