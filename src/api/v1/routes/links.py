@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import RedirectResponse
@@ -41,11 +42,15 @@ async def create_new_link(
     session: AsyncSession = Depends(
         db_engine.scoped_session_dependency,
     ),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """Создание короткой ссылки"""
 
-    db_link = await create_link(session, link_in, user_id=current_user.id)
+    db_link = await create_link(
+        session,
+        link_in,
+        user_id=current_user.id if current_user else None,
+    )
     rt_short_url = (
         f"http://{settings.run.host}:{settings.run.port}/{db_link.short_code}"
     )
