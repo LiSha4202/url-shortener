@@ -37,6 +37,14 @@ class UserSchemaConfig(BaseModel):
     password_min_length: int = 8  # Минимальная длина пароля
 
 
+class SetCookieConfig(BaseModel):
+    key: str = "access_token"
+    httponly: bool = True  # Запрет доступа через JS
+    samesite: str = "lax"  # Защита от CSRF
+    secure: bool = False  # True для HTTPS
+    max_age: int = 3600  # 1 час
+
+
 class DataBaseSettings(BaseModel):
     """Настройки базы данных"""
 
@@ -90,6 +98,7 @@ class Settings(BaseSettings):
     ls: LinkSchemaConfig = LinkSchemaConfig()
     us: UserSchemaConfig = UserSchemaConfig()
     jwt: JWTSettings
+    sc: SetCookieConfig = SetCookieConfig()
 
 
 settings = Settings()  # type: ignore

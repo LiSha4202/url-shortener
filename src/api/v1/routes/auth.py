@@ -39,6 +39,7 @@ async def register_user(
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+    response: Response = Response(),
 ):
     """Аутентификация и получение JWT токенов"""
     user = await authentificate_user(session, form_data.username, form_data.password)
@@ -56,11 +57,16 @@ async def login_for_access_token(
         expires_delta=refresh_token_expires,
     )
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
+    response.set_cookie(
+        key=settings.sc.key,
+        value=f"Bearer {access_token}",
+        httponly=settings.sc.httponly,
+        samesite=settings.sc.samesite,  # type: ignore
+        secure=settings.sc.secure,
+        max_age=settings.sc.max_age,
+    )
+
+    return {"message": "Successfuly logged in"}
 
 
 @router.get("/me", response_model=UserResponse)
