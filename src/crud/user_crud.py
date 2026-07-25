@@ -1,8 +1,8 @@
-from sqlalchemy import select
+from sqlalchemy import select, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.users_model import User  # SQLAlchemy модель
-from core.schemas.user_schema import UserCreate  # Pydantic схема
+from core.schemas.user_schema import UserCreate, UserUpdate  # Pydantic схема
 
 from utils.hash_password import get_password_hash
 
@@ -49,3 +49,53 @@ async def get_all_users(session: AsyncSession) -> list[User]:
     result = await session.execute(stmt)
     users = result.scalars().all()
     return list(users)
+
+
+async def update_user(
+    session: AsyncSession, user_update: UserUpdate, user_id: int
+) -> User | None:
+    """Обновление данных пользователя"""
+
+    stmt = (
+        update(User)
+        .where(
+            and_(
+                User.email == user_update.email, User.username == user_update.username
+            ),
+        )
+        .values(
+            email=user_update.email if user_update.email else None,
+            username=user_update.username if user_update.username else None,
+            password=(
+                get_password_hash(str(user_update.password))
+                if user_update.password
+                else None
+            ),
+        )
+    )
+
+    await session.execute(stmt)
+    await session.commit()
+
+    updated_user = await get_user_by_id(session, user_id)
+    if not updated_user:
+        return None
+
+    return updated_user
+
+
+async def delete_user(
+    session: AsyncSession,
+    user_id: int,
+) -> bool:
+    """Удаление пользователя"""
+
+    user = await get_user_by_id(session, user_id)
+    if not user:
+        return False
+
+    stmt = delete(User).where(User.id == user_id)
+    await session.execute(stmt)
+    await session.commit()
+
+    return True

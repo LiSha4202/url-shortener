@@ -56,3 +56,10 @@ def exc_403_user_forbidden_to_link():
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Link does not belong to the current user [ID-8]",
     )
+
+
+def exc_404_user_not_found(user_email: str):
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"User {user_email} not found [ID-9]",
+    )

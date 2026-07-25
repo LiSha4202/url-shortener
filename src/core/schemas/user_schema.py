@@ -65,7 +65,7 @@ class UserResponse(BaseModel):
         # Модель может быть создана из ORM-объекта (Из user_model для БД)
 
 
-class UserUpdate(UserModel):
+class UserUpdate(BaseModel):
     """Схема пользователя для обновления данных"""
 
     username: Optional[str] = Field(

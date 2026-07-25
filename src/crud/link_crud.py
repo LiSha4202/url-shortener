@@ -244,7 +244,7 @@ async def delete_link(
         and_(Link.short_code == short_code, Link.user_id == user_id)
     )
 
-    result = await session.execute(stmt)
+    await session.execute(stmt)
     await session.commit()
 
     return True
