@@ -33,6 +33,7 @@ from crud.link_crud import (
     get_link_stats_top,
     get_link_sorted_by_user_id,
     update_link,
+    delete_link,
 )
 
 router = APIRouter(prefix="/links", tags=["links"])
@@ -64,7 +65,7 @@ async def create_new_link(
     )
 
 
-@router.patch("/{short_code}", response_model=LinkResponse)
+@router.patch("/{short_code}/update", response_model=LinkResponse)
 async def update_link_route(
     short_code: str,
     link_update: LinkUpdate,
@@ -92,6 +93,29 @@ async def update_link_route(
         created_at=db_link.created_at,
         expires_at=db_link.expires_at,
     )
+
+
+@router.delete(
+    "/{short_code}/delete",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_link_route(
+    short_code: str,
+    current_user: Optional[User] = Depends(get_current_user),
+    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+):
+    """Удаление ссылки"""
+
+    deleted = await delete_link(
+        session,
+        short_code=short_code,
+        user_id=current_user.id if current_user else None,
+    )
+
+    if not deleted:
+        raise exc_link_404_not_found()
+
+    return None
 
 
 @router.get("/{short_code}", include_in_schema=False)
