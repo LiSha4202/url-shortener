@@ -35,3 +35,10 @@ def exc_short_code_existing(shortcode: str):
         status_code=status.HTTP_409_CONFLICT,
         detail=f"Short code '{shortcode}' is already in use [ID-5]",
     )
+
+
+def exc_400_expires_not_provided():
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Expires at must be provided",
+    )

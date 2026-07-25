@@ -20,7 +20,6 @@ async def get_current_user(
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ) -> Optional[User]:
     """Проверка JWT-токена"""
-    print(f"опа, уменя тоже есть птички")
     if not token:
         return None
 

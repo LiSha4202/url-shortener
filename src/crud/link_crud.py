@@ -2,14 +2,20 @@ from datetime import datetime, date, timedelta
 
 from typing import Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.links_model import Link
 
 from core.config import settings
 from core.exceptions import exc_short_code_existing
-from core.schemas.link_schema import LinkCreate, LinkStatsAll, LinkStatsTop, LinksMe
+from core.schemas.link_schema import (
+    LinkCreate,
+    LinkStatsAll,
+    LinkStatsTop,
+    LinksMe,
+    LinkUpdate,
+)
 
 from utils.base62 import generaste_short_code
 
@@ -185,3 +191,48 @@ async def get_link_sorted_by_user_id(
         )
         for link in links
     ]
+
+
+async def update_link(
+    session: AsyncSession,
+    short_code: str,
+    link_update: LinkUpdate,
+    user_id: Optional[int] = None,
+) -> Link | None:
+    """Обновление ссылки по short_code"""
+
+    stmt = (
+        update(Link)
+        .where(Link.short_code == short_code)
+        .values(
+            expires_at=(
+                datetime.utcnow() + timedelta(days=link_update.expires_at)
+                if link_update.expires_at
+                else None
+            ),
+        )
+    )
+    if user_id is not None:
+        stmt = stmt.where(Link.user_id == user_id)  # Разрешено только владельцу
+
+    await session.execute(stmt)
+    await session.commit()
+
+    return await get_link_by_code(session, short_code)
+
+
+async def delete_link(
+    session: AsyncSession,
+    short_code: str,
+    user_id: Optional[int] = None,
+) -> bool:
+    """Удаление ссылки по short_code"""
+
+    stmt = delete(Link).where(Link.short_code == short_code)
+    if user_id is not None:
+        stmt = stmt.where(Link.user_id == user_id)
+
+    result = await session.execute(stmt)
+    await session.commit()
+
+    return result.rowcount > 0

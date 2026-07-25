@@ -13,12 +13,13 @@ from core.schemas.link_schema import (
     LinkStatsAll,
     LinkStatsTop,
     LinksMe,
+    LinkUpdate,
 )
-from core.config import settings
 from core.exceptions import (
     exc_link_404_not_found,
     exc_link_410_gone,
     exc_log_click_500_server_error,
+    exc_400_expires_not_provided,
 )
 from core.security.base_auth import get_current_user
 
@@ -31,6 +32,7 @@ from crud.link_crud import (
     get_links_stats_all,
     get_link_stats_top,
     get_link_sorted_by_user_id,
+    update_link,
 )
 
 router = APIRouter(prefix="/links", tags=["links"])
@@ -53,6 +55,36 @@ async def create_new_link(
         link_in,
         user_id=current_user.id if current_user else None,
     )
+
+    return LinkResponse(
+        short_code=db_link.short_code,
+        original_url=str(db_link.original_url),
+        created_at=db_link.created_at,
+        expires_at=db_link.expires_at,
+    )
+
+
+@router.patch("/{short_code}", response_model=LinkResponse)
+async def update_link_route(
+    short_code: str,
+    link_update: LinkUpdate,
+    current_user: Optional[User] = Depends(get_current_user),
+    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+):
+    """Обновление срока жизни ссылки"""
+
+    if not link_update.expires_at:
+        raise exc_400_expires_not_provided()
+
+    db_link = await update_link(
+        session,
+        short_code=short_code,
+        link_update=link_update,
+        user_id=current_user.id if current_user else None,
+    )
+
+    if not db_link:
+        raise exc_link_404_not_found()
 
     return LinkResponse(
         short_code=db_link.short_code,

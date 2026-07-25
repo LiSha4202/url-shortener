@@ -198,3 +198,14 @@ class LinksMe(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LinkUpdate(BaseModel):
+    """Схема для обновления ссылки"""
+
+    expires_at: Optional[int] = Field(
+        default=None,
+        ge=settings.ls.expire_in_days_min_length,  # Минимальный срок жизни ссылки
+        le=settings.ls.expire_in_days_max_length,  # Максимальный срок жизни ссылки
+        description=("Время истечения ссылки (Опционально)" "По умолчанию не истекает"),
+    )
