@@ -66,7 +66,11 @@ async def login_for_access_token(
         max_age=settings.sc.max_age,
     )
 
-    return {"message": "Successfuly logged in"}
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
 
 
 @router.get("/me", response_model=UserResponse)

@@ -9,7 +9,7 @@ from models.links_model import Link
 
 from core.config import settings
 from core.exceptions import exc_short_code_existing
-from core.schemas.link_schema import LinkCreate, LinkStatsAll, LinkStatsTop
+from core.schemas.link_schema import LinkCreate, LinkStatsAll, LinkStatsTop, LinksMe
 
 from utils.base62 import generaste_short_code
 
@@ -157,6 +157,31 @@ async def get_link_stats_top(
             original_url=link.original_url,
             click_count=link.clicks_count,
             created_at=link.created_at,
+        )
+        for link in links
+    ]
+
+
+async def get_link_sorted_by_user_id(
+    session: AsyncSession,
+    user_id: Optional[int],
+) -> list[LinksMe]:
+    """Получение данных о ссылках по user_id"""
+
+    if user_id is None:
+        return []
+
+    stmt = select(Link).where(Link.user_id == user_id)
+    result = await session.execute(stmt)
+    links = result.scalars().all()
+
+    return [
+        LinksMe(
+            short_code=link.short_code,
+            original_url=link.original_url,
+            user_id=link.user_id,
+            created_at=link.created_at,
+            expires_at=link.expires_at,
         )
         for link in links
     ]

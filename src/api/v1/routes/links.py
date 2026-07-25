@@ -12,6 +12,7 @@ from core.schemas.link_schema import (
     LinkStats,
     LinkStatsAll,
     LinkStatsTop,
+    LinksMe,
 )
 from core.config import settings
 from core.exceptions import (
@@ -29,6 +30,7 @@ from crud.link_crud import (
     increment_click_count,
     get_links_stats_all,
     get_link_stats_top,
+    get_link_sorted_by_user_id,
 )
 
 router = APIRouter(prefix="/links", tags=["links"])
@@ -122,3 +124,14 @@ async def get_top_links_stats(
     """Получение топ популярных ссылок"""
 
     return await get_link_stats_top(session, limit=limit)
+
+
+@router.get("/me", response_model=list[LinksMe])
+async def get_links_by_user_id(
+    current_user: Optional[User] = Depends(get_current_user),
+    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+):
+    """Получение ссылок пользователя по его ID"""
+
+    user_id = current_user.id if current_user else None
+    return await get_link_sorted_by_user_id(session, user_id)

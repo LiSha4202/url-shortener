@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 
-from jose import jwt
+from jose import jwt, exceptions as jwt_exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings

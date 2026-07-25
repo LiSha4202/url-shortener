@@ -166,3 +166,41 @@ class LinkStatsTop(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LinksMe(BaseModel):
+    """Схема данных о ссылке, только по user_id"""
+
+    user_id: int = Field(
+        ...,
+        description="ID пользователя",
+    )
+
+    short_code: str = Field(
+        ...,
+        description="Сгенерированный или кастомный код ссылки",
+    )
+
+    @computed_field
+    @property
+    def full_short_url(self) -> str:
+        """Полный URL с короткой ссылкой"""
+        return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
+
+    original_url: str = Field(
+        ...,
+        description="Оригинальный URL",
+    )
+
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="Время создания короткой ссылки",
+    )
+
+    expires_at: Optional[datetime] = Field(
+        None,
+        description="(необязательно) Время истечения срока действия",
+    )
+
+    class Config:
+        from_attributes = True
