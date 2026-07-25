@@ -2,7 +2,7 @@ from datetime import datetime, date, timedelta
 
 from typing import Optional
 
-from sqlalchemy import select, func, update, delete
+from sqlalchemy import select, func, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.links_model import Link
@@ -197,13 +197,15 @@ async def update_link(
     session: AsyncSession,
     short_code: str,
     link_update: LinkUpdate,
-    user_id: Optional[int] = None,
+    user_id: int,
 ) -> Link | None:
     """Обновление ссылки по short_code"""
 
     stmt = (
         update(Link)
-        .where(Link.short_code == short_code)
+        .where(
+            and_(Link.short_code == short_code, Link.user_id == user_id),
+        )
         .values(
             expires_at=(
                 datetime.utcnow() + timedelta(days=link_update.expires_at)
@@ -212,27 +214,37 @@ async def update_link(
             ),
         )
     )
-    if user_id is not None:
-        stmt = stmt.where(Link.user_id == user_id)  # Разрешено только владельцу
 
     await session.execute(stmt)
     await session.commit()
 
-    return await get_link_by_code(session, short_code)
+    updated_link = await get_link_by_code(session, short_code)
+    if not updated_link or updated_link.user_id != user_id:
+        return None
+
+    return updated_link
 
 
 async def delete_link(
     session: AsyncSession,
     short_code: str,
-    user_id: Optional[int] = None,
+    user_id: int,
 ) -> bool:
     """Удаление ссылки по short_code"""
 
-    stmt = delete(Link).where(Link.short_code == short_code)
-    if user_id is not None:
-        stmt = stmt.where(Link.user_id == user_id)
+    link = await get_link_by_code(session, short_code)
+
+    if not link:
+        return False
+
+    if link.user_id != user_id:
+        return False
+
+    stmt = delete(Link).where(
+        and_(Link.short_code == short_code, Link.user_id == user_id)
+    )
 
     result = await session.execute(stmt)
     await session.commit()
 
-    return result.rowcount > 0
+    return True

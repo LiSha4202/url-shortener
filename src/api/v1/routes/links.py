@@ -20,6 +20,8 @@ from core.exceptions import (
     exc_link_410_gone,
     exc_log_click_500_server_error,
     exc_400_expires_not_provided,
+    exc_401_user_not_auth,
+    exc_403_user_forbidden_to_link,
 )
 from core.security.base_auth import get_current_user
 
@@ -69,10 +71,13 @@ async def create_new_link(
 async def update_link_route(
     short_code: str,
     link_update: LinkUpdate,
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Обновление срока жизни ссылки"""
+
+    if not current_user:
+        raise exc_401_user_not_auth()
 
     if not link_update.expires_at:
         raise exc_400_expires_not_provided()
@@ -81,11 +86,11 @@ async def update_link_route(
         session,
         short_code=short_code,
         link_update=link_update,
-        user_id=current_user.id if current_user else None,
+        user_id=current_user.id,
     )
 
     if not db_link:
-        raise exc_link_404_not_found()
+        raise exc_403_user_forbidden_to_link()
 
     return LinkResponse(
         short_code=db_link.short_code,
@@ -101,15 +106,18 @@ async def update_link_route(
 )
 async def delete_link_route(
     short_code: str,
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Удаление ссылки"""
 
+    if not current_user:
+        raise exc_401_user_not_auth()
+
     deleted = await delete_link(
         session,
         short_code=short_code,
-        user_id=current_user.id if current_user else None,
+        user_id=current_user.id,
     )
 
     if not deleted:

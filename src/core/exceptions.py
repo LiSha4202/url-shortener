@@ -12,7 +12,7 @@ def exc_401_not_val_cred(header_type: str):
 def exc_link_404_not_found():
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
-        detail="Link not found [ID-2]",
+        detail="Link not found or not belong to user [ID-2]",
     )
 
 
@@ -40,5 +40,19 @@ def exc_short_code_existing(shortcode: str):
 def exc_400_expires_not_provided():
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Expires at must be provided",
+        detail="Expires at must be provided [ID-6]",
+    )
+
+
+def exc_401_user_not_auth():
+    raise HTTPException(
+        status.HTTP_401_UNAUTHORIZED,
+        detail="Not Authentificated [ID-7]",
+    )
+
+
+def exc_403_user_forbidden_to_link():
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Link does not belong to the current user [ID-8]",
     )
