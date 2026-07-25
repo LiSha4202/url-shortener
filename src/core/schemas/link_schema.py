@@ -51,12 +51,6 @@ class LinkResponse(BaseModel):
         description="Сгенерированный или кастомный код ссылки",
     )
 
-    short_url: str = Field(
-        ...,
-        description="Полный URL с укороченной ссылкой",
-        exclude=True,
-    )
-
     original_url: str = Field(
         ...,
         description="Оригинальный URL",
@@ -74,7 +68,7 @@ class LinkResponse(BaseModel):
 
     @computed_field
     @property
-    def full_short_url(self) -> str:
+    def short_url(self) -> str:
         """Полный URL с короткой ссылкой"""
         return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
 
@@ -150,7 +144,7 @@ class LinkStatsTop(BaseModel):
 
     @computed_field
     @property
-    def full_short_url(self) -> str:
+    def short_url(self) -> str:
         """Полный URL с короткой ссылкой"""
         return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
 
@@ -183,7 +177,7 @@ class LinksMe(BaseModel):
 
     @computed_field
     @property
-    def full_short_url(self) -> str:
+    def short_url(self) -> str:
         """Полный URL с короткой ссылкой"""
         return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
 

@@ -20,7 +20,7 @@ async def get_current_user(
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ) -> Optional[User]:
     """Проверка JWT-токена"""
-
+    print(f"опа, уменя тоже есть птички")
     if not token:
         return None
 
@@ -28,16 +28,17 @@ async def get_current_user(
         payload = decode_jwt_token(token)
 
         if payload is None:
-            return exc_401_not_val_cred(header_type="Bearer")
+            return None
 
         email: str = payload.get("sub")  # type: ignore
         if email is None:
-            return exc_401_not_val_cred(header_type="Bearer")
+            return None
 
         user = await get_user_by_email(session, email)
         if user is None:
-            return exc_401_not_val_cred(header_type="Bearer")
+            return None
 
         return user
-    except HTTPException:
+    except HTTPException as e:
+        print(f"опа, уменя тоже есть птички {e}")
         return None

@@ -53,13 +53,9 @@ async def create_new_link(
         link_in,
         user_id=current_user.id if current_user else None,
     )
-    rt_short_url = (
-        f"http://{settings.run.host}:{settings.run.port}/{db_link.short_code}"
-    )
 
     return LinkResponse(
         short_code=db_link.short_code,
-        short_url=rt_short_url,
         original_url=str(db_link.original_url),
         created_at=db_link.created_at,
         expires_at=db_link.expires_at,
@@ -126,12 +122,16 @@ async def get_top_links_stats(
     return await get_link_stats_top(session, limit=limit)
 
 
-@router.get("/me", response_model=list[LinksMe])
+@router.get("/{}/my_links", response_model=list[LinksMe])
 async def get_links_by_user_id(
     current_user: Optional[User] = Depends(get_current_user),
-    session: AsyncSession = Depends(db_engine.scoped_session_dependency),
+    session: AsyncSession = Depends(
+        db_engine.scoped_session_dependency,
+    ),
 ):
     """Получение ссылок пользователя по его ID"""
 
-    user_id = current_user.id if current_user else None
-    return await get_link_sorted_by_user_id(session, user_id)
+    return await get_link_sorted_by_user_id(
+        session,
+        user_id=current_user.id if current_user else None,
+    )

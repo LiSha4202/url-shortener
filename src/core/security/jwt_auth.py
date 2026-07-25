@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 
-from jose import jwt, exceptions as jwt_exceptions
+from jose import jwt, exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -53,9 +53,9 @@ async def authentificate_user(
 
     user = await get_user_by_email(session, email)
     if not user:
-        return exc_401_not_val_cred(header_type="Bearer")
+        raise exc_401_not_val_cred(header_type="Bearer")
     if not verify_password(password, user.password):  # type: ignore
-        return exc_401_not_val_cred(header_type="Bearer")
+        raise exc_401_not_val_cred(header_type="Bearer")
 
     return user
 
@@ -64,5 +64,8 @@ def decode_jwt_token(token: str):
     """Декодирование JWT-токена"""
     if token is None:
         return None
-
-    return jwt.decode(token, key=settings.jwt.jwt_secret_key)
+    try:
+        return jwt.decode(token, key=settings.jwt.jwt_secret_key)
+    except exceptions:
+        print("Error JWT")
+        return None
