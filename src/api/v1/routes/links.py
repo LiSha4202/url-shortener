@@ -74,7 +74,7 @@ async def update_link_route(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
-    """Обновление срока жизни ссылки"""
+    """Обновление ссылки (Оригинальный URL и / или срок жизни)"""
 
     if not current_user:
         raise exc_401_user_not_auth()

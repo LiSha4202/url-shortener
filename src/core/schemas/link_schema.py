@@ -203,6 +203,11 @@ class LinksMe(BaseModel):
 class LinkUpdate(BaseModel):
     """Схема для обновления ссылки"""
 
+    original_url: str = Field(
+        ...,
+        description="Новый оригинальный URL",
+    )
+
     expires_at: Optional[int] = Field(
         default=None,
         ge=settings.ls.expire_in_days_min_length,  # Минимальный срок жизни ссылки
