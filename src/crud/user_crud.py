@@ -56,32 +56,26 @@ async def update_user(
 ) -> User | None:
     """Обновление данных пользователя"""
 
-    stmt = (
-        update(User)
-        .where(
-            and_(
-                User.email == user_update.email, User.username == user_update.username
-            ),
-        )
-        .values(
-            email=user_update.email if user_update.email else None,
-            username=user_update.username if user_update.username else None,
-            password=(
-                get_password_hash(str(user_update.password))
-                if user_update.password
-                else None
-            ),
-        )
-    )
+    current_user = await get_user_by_id(session, user_id)
+    if not current_user:
+        return None
 
+    values = {}
+    if user_update.username is not None:
+        values["username"] = user_update.username
+    if user_update.email is not None:
+        values["email"] = user_update.email
+    if user_update.password is not None:
+        values["password"] = get_password_hash(user_update.password)
+
+    if not values:
+        return current_user
+
+    stmt = update(User).where(User.id == user_id).values(**values)
     await session.execute(stmt)
     await session.commit()
 
-    updated_user = await get_user_by_id(session, user_id)
-    if not updated_user:
-        return None
-
-    return updated_user
+    return await get_user_by_id(session, user_id)
 
 
 async def delete_user(

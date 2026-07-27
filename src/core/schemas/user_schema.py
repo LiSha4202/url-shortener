@@ -80,3 +80,6 @@ class UserUpdate(BaseModel):
         None,
         description="Новый пароль",
     )
+
+    class Config:
+        extra = "forbid"

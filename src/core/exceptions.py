@@ -63,3 +63,10 @@ def exc_404_user_not_found(user_email: str):
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"User {user_email} not found [ID-9]",
     )
+
+
+def exc_400_bad_request_patch():
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="At least one field must be provided",
+    )

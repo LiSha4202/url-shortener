@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import Depends, APIRouter, status, Response
+from fastapi import Depends, APIRouter, status, Response, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,11 @@ from core.security.jwt_auth import (
     create_access_token,
     create_refresh_token,
 )
-from core.exceptions import exc_401_user_not_auth, exc_404_user_not_found
+from core.exceptions import (
+    exc_401_user_not_auth,
+    exc_404_user_not_found,
+    exc_400_bad_request_patch,
+)
 
 from models.users_model import User
 
@@ -82,16 +86,25 @@ async def logout(response: Response):
     return {"message": "Successfully logged out"}
 
 
-@router.patch("/update", response_model=UserUpdate)
+@router.patch("/update", response_model=UserResponse)
 async def patch_user(
-    user_update: UserUpdate,
+    user_update: UserUpdate = Body(...),
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
-    """Обновление данных пользователя (Роут)"""
+    """Частичное обновление данных пользователя (Роут)"""
 
     if not current_user:
         raise exc_401_user_not_auth()
+
+    if not any(
+        [
+            user_update.username,
+            user_update.email,
+            user_update.password,
+        ]
+    ):
+        raise exc_400_bad_request_patch()
 
     db_user = await update_user(
         session,
