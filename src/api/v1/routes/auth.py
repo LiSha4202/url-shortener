@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 
 from core.database.engine import db_engine
-from core.schemas.user_schema import UserCreate, UserResponse, UserUpdate
+from core.schemas.user_schema import (
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+    UserPatchResponse,
+)
 
 from core.security.base_auth import get_current_user
 from core.security.jwt_auth import (
@@ -86,7 +91,7 @@ async def logout(response: Response):
     return {"message": "Successfully logged out"}
 
 
-@router.patch("/update", response_model=UserResponse)
+@router.patch("/update", response_model=UserPatchResponse)
 async def patch_user(
     user_update: UserUpdate = Body(...),
     current_user: User = Depends(get_current_user),

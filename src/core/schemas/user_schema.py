@@ -55,14 +55,39 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     """Схема пользователя для ответа серверу"""
 
-    id: int
-    username: str
-    email: str
-    created_at: datetime
+    username: str = Field(
+        ...,
+        description="Имя пользователя (Уникальное)",
+    )
+    email: str = Field(
+        ...,
+        description="Почта пользователя",
+    )
+    created_at: datetime = Field(
+        ...,
+        description="Время создания аккаунта",
+    )
 
     class Config:
         from_attributes = True  # В Pydantic V2: вместо orm_mode=True
         # Модель может быть создана из ORM-объекта (Из user_model для БД)
+
+
+class UserPatchResponse(BaseModel):
+    """Схема пользователя для ответа после обновления данных"""
+
+    username: str = Field(
+        ...,
+        description="Имя пользователя (Уникальное)",
+    )
+    email: str = Field(
+        ...,
+        description="Почта пользователя",
+    )
+    created_at: datetime = Field(
+        ...,
+        description="Время создания аккаунта",
+    )
 
 
 class UserUpdate(BaseModel):
