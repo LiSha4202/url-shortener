@@ -103,6 +103,7 @@ class UserUpdate(BaseModel):
     )
     password: Optional[str] = Field(
         None,
+        min_length=settings.us.password_min_length,
         description="Новый пароль",
     )
 
