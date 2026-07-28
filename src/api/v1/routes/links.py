@@ -76,12 +76,6 @@ async def update_link_route(
 ):
     """Обновление ссылки (Оригинальный URL и / или срок жизни)"""
 
-    if not current_user:
-        raise exc_401_user_not_auth()
-
-    if not link_update.expires_at:
-        raise exc_400_expires_not_provided()
-
     db_link = await update_link(
         session,
         short_code=short_code,

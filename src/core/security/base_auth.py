@@ -39,5 +39,4 @@ async def get_current_user(
 
         return user
     except HTTPException as e:
-        print(f"опа, уменя тоже есть птички {e}")
         return None

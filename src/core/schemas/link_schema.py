@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Optional, Dict
 
-from pydantic import Field, BaseModel, HttpUrl, computed_field
+from pydantic import Field, BaseModel, HttpUrl, computed_field, field_validator
 from pydantic.types import constr
 
 from core.config import settings
+from core.exceptions import exc_400_bad_req_exp_link
 
 # Алиас для валидации кастомной ссылки
 ShortCode = constr(
@@ -203,14 +204,26 @@ class LinksMe(BaseModel):
 class LinkUpdate(BaseModel):
     """Схема для обновления ссылки"""
 
-    original_url: str = Field(
-        ...,
+    original_url: Optional[HttpUrl] = Field(
+        default=None,
         description="Новый оригинальный URL",
     )
 
     expires_at: Optional[int] = Field(
         default=None,
-        ge=settings.ls.expire_in_days_min_length,  # Минимальный срок жизни ссылки
-        le=settings.ls.expire_in_days_max_length,  # Максимальный срок жизни ссылки
         description=("Время истечения ссылки (Опционально)" "По умолчанию не истекает"),
     )
+
+    @field_validator("expires_at")
+    @classmethod
+    def validate_expires_At(cls, v):
+        if v is not None:
+            if (
+                v < settings.ls.expire_in_days_min_length
+                or v > settings.ls.expire_in_days_max_length
+            ):
+                raise exc_400_bad_req_exp_link()
+        return v
+
+    class Config:
+        extra = "forbid"

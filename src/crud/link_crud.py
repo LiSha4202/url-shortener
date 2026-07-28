@@ -201,29 +201,36 @@ async def update_link(
 ) -> Link | None:
     """Обновление ссылки по short_code"""
 
-    stmt = update(Link).where(Link.short_code == short_code)
+    current_link = await get_link_by_code(session, short_code)
+    if not current_link:
+        return None
 
     values = {}
     if link_update.original_url is not None:
         values["original_url"] = str(link_update.original_url)
+
     if link_update.expires_at is not None:
         values["expires_at"] = datetime.utcnow() + timedelta(
             days=link_update.expires_at
         )
+    elif current_link.expires_at is not None:
+        values["expires_at"] = None
 
     if not values:
         return None
 
-    stmt = stmt.values(**values).where(Link.user_id == user_id)
+    stmt = (
+        update(Link)
+        .where(
+            and_(Link.user_id == user_id, Link.short_code == short_code),
+        )
+        .values(**values)
+    )
 
-    result = await session.execute(stmt)
+    await session.execute(stmt)
     await session.commit()
 
-    updated_link = await get_link_by_code(session, short_code)
-    if not updated_link or updated_link.user_id != user_id:
-        return None
-
-    return updated_link
+    return await get_link_by_code(session, short_code)
 
 
 async def delete_link(

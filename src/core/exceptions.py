@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from core.config import settings
 
 
 def exc_401_not_val_cred(header_type: str):
@@ -68,5 +69,12 @@ def exc_404_user_not_found(user_email: str):
 def exc_400_bad_request_patch():
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
-        detail="At least one field must be provided",
+        detail="At least one field must be provided [ID-10]",
+    )
+
+
+def exc_400_bad_req_exp_link():
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=f"Link expiration must be between {settings.ls.expire_in_days_min_length} and {settings.ls.expire_in_days_max_length} [ID-11]",
     )
