@@ -23,7 +23,9 @@ from core.exceptions import (
     exc_401_user_not_auth,
     exc_403_user_forbidden_to_link,
 )
+
 from core.security.base_auth import get_current_user
+from core.security.admin_auth import get_current_admin_user
 
 from models.users_model import User
 
@@ -144,7 +146,8 @@ async def redirect_to_original(
 
 @router.get("/{short_code}/stats", response_model=LinkStats)
 async def get_link_stats(
-    short_code=str,
+    short_code: str,
+    current_admin: User = Depends(get_current_admin_user),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Получение статистики по ссылке"""
@@ -164,6 +167,7 @@ async def get_link_stats(
 
 @router.get("/stats/all", response_model=LinkStatsAll)
 async def get_all_links_stats(
+    current_admin: User = Depends(get_current_admin_user),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Получение общей статистики по всем ссылкам"""
@@ -173,6 +177,7 @@ async def get_all_links_stats(
 @router.get("/stats/top", response_model=list[LinkStatsTop])
 async def get_top_links_stats(
     limit: int = 10,
+    current_admin: User = Depends(get_current_admin_user),
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Получение топ популярных ссылок"""
