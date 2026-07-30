@@ -2,7 +2,7 @@ from datetime import datetime
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, func, Boolean
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from core.database.base import Base
@@ -21,6 +21,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     links: Mapped[list["Link"]] = relationship(  # Связь Many-to-One
         back_populates="user",

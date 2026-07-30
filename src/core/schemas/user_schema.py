@@ -28,6 +28,10 @@ class UserModel(BaseModel):
         ...,
         description="Время создания аккаунта пользователя",
     )
+    is_admin: bool = Field(
+        ...,
+        description="Является ли пользователь админом",
+    )
 
 
 class UserCreate(BaseModel):
@@ -67,6 +71,10 @@ class UserResponse(BaseModel):
         ...,
         description="Время создания аккаунта",
     )
+    is_admin: bool = Field(
+        ...,
+        description="Является ли пользователь админом",
+    )
 
     class Config:
         from_attributes = True  # В Pydantic V2: вместо orm_mode=True
@@ -87,6 +95,10 @@ class UserPatchResponse(BaseModel):
     created_at: datetime = Field(
         ...,
         description="Время создания аккаунта",
+    )
+    is_admin: bool = Field(
+        ...,
+        description="Является ли пользователь админом",
     )
 
 
