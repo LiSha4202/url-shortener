@@ -11,6 +11,7 @@ from core.database.base import Base
 
 if TYPE_CHECKING:
     from .users_model import User
+    from .clicks_model import ClickLog
 
 
 class Link(Base):
@@ -42,6 +43,10 @@ class Link(Base):
     user: Mapped["User | None"] = relationship(  # Связь Many-to-One
         back_populates="links",
         lazy="select",
+    )
+    click_log: Mapped[list["ClickLog"]] = relationship(
+        back_populates="link",
+        lazy="selectin",
     )
 
     def __str__(self):
