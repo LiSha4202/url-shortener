@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from core.database.base import Base
 from models.links_model import Link
 from models.users_model import User
+from models.clicks_model import ClickLog
 
 from alembic import context
 

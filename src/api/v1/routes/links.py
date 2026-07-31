@@ -230,7 +230,7 @@ async def get_links_by_user_id(
     )
 
 
-@router.get("/{short_code}/stats/detail", response_model=ClickLogResponse)
+@router.get("/{short_code}/stats/detail", response_model=list[ClickLogResponse])
 async def get_detail_link_stats(
     short_code: str,
     current_admin: User = Depends(get_current_admin_user),

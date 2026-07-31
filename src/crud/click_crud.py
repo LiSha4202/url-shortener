@@ -47,7 +47,7 @@ async def get_link_detail_click_history(
 
     stmt = (
         select(ClickLog)
-        .where(ClickLog.id == link_id)
+        .where(ClickLog.id == link_id.id)
         .order_by(ClickLog.created_at.desc())
         .limit(limit)
     )
