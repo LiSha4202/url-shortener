@@ -31,7 +31,7 @@ async def create_click_log(
     return click_log
 
 
-async def get_link_click_history(
+async def get_link_detail_click_history(
     session: AsyncSession,
     short_code: str,
     limit: int = 100,
