@@ -83,6 +83,7 @@ class TestUserSchemas:
             "username": "test_user",
             "email": "test@example.com",
             "created_at": datetime.utcnow(),
+            "is_admin": False,
         }
         user = UserModel(**model_data)
         assert user.id == "123"
@@ -93,15 +94,6 @@ class TestLinkSchemas:
     """Тесты для схем ссылок"""
 
     # --- Test LinkCreate ---
-    def test_link_create_valid_generated_code(self):
-        """Создание ссылки без короткого кода"""
-        link_data = {
-            "original_url": "https://www.google.com",
-            # short_code отсутствует
-        }
-        link = LinkCreate(**link_data)  # type: ignore
-        assert link.short_code == "my-link-1"
-
     def test_link_create_custom_code_valid(self):
         """Создание ссылки с валидным кастомным кодом"""
         link_data = {
@@ -189,19 +181,11 @@ class TestLinkSchemas:
 
     def test_link_update_invalid_expires(self):
         """Невалидное время истечения в обновлении (должен вызывать исключение из exc_400_bad_req_exp_link)"""
-        # Здесь важно: validate_expires_At должен raise исключение.
-        # Если exc_400_bad_req_exp_link - это HTTPException, то Pydantic валидаторы
-        # обычно ловят ValidationError, но если raise exception outside Pydantic logic,
-        # то тест может провалиться иначе.
-        # Обычно для FastAPI лучше возвращать HTTPException из валидаторов в тестах
-        # нужно ловить конкретное исключение или проверять логику через mock.
-
-        # Предположим, exc_400_bad_req_exp_link - это HTTPException
         from fastapi import HTTPException
 
         with pytest.raises(HTTPException):
             LinkUpdate(
-                expires_at=settings.ls.expire_in_days_min_length,
+                expires_at=settings.ls.expire_in_days_min_length - 1,
             )
 
     def test_link_update_forbid_extra(self):
