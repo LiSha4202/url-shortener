@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 
 class ClickLog(Base):
+    """Модель хранения данных о клике пользователя в БД"""
 
     __tablename__ = "click_log"  # type: ignore
 
