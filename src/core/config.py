@@ -83,6 +83,13 @@ class JWTSettings(BaseModel):
     refresh_token_expire_days: int = 7  # Refresh-token для обновления Access-T (ДНИ.)
 
 
+class RedisConfig(BaseModel):
+    """Настройки Redis"""
+
+    # REDIS - URL
+    redis_url: str = "redis://localhcost:6379/0"
+
+
 class Settings(BaseSettings):
     """Основной класс, принимающий все классы из файла config.py для использования в других файлах"""
 
@@ -99,6 +106,7 @@ class Settings(BaseSettings):
     us: UserSchemaConfig = UserSchemaConfig()
     jwt: JWTSettings
     sc: SetCookieConfig = SetCookieConfig()
+    rds: RedisConfig = RedisConfig()
 
 
 settings = Settings()  # type: ignore

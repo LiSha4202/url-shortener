@@ -42,6 +42,15 @@ services:
     depends_on:
       pg:
         condition: service_healthy
+  
+  redis:
+    image: redis:8-debian13
+    container_name: redis_cache
+    ports:
+      - "6739:6739"
+    volumes:
+      - redis_data:/data
+    restart: unless_stopped
 
 volumes:
   postgres_data:
