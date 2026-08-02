@@ -9,6 +9,7 @@ from models.links_model import Link
 
 from core.schemas.click_schema import ClickLogResponse
 from core.redis_client import redis_client
+from core.exceptions import exc_redis_cache_val_error
 
 
 async def create_click_log(
@@ -29,6 +30,13 @@ async def create_click_log(
     session.add(click_log)
     await session.commit()
     await session.refresh(click_log)
+
+    cache_key = f"click_history:{click_log.link_id}"
+    try:
+        await redis_client.delete(cache_key)
+    except Exception as e:
+        print(exc_redis_cache_val_error(e))
+
     return click_log
 
 

@@ -85,3 +85,7 @@ def exc_403_admin_forbidden():
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Not enough permissions to perform this action. The administrator role is required [ID-12]",
     )
+
+
+def exc_redis_cache_val_error(error):
+    return f"[ID-13] Redis cache validation error: {error}"

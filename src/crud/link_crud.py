@@ -1,4 +1,5 @@
 from datetime import datetime, date, timedelta
+import json
 
 from typing import Optional
 
@@ -7,8 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.links_model import Link
 
+from core.redis_client import redis_client
 from core.config import settings
-from core.exceptions import exc_short_code_existing
+from core.exceptions import exc_short_code_existing, exc_redis_cache_val_error
 from core.schemas.link_schema import (
     LinkCreate,
     LinkStatsAll,
@@ -18,60 +20,78 @@ from core.schemas.link_schema import (
 )
 
 from utils.base62 import generaste_short_code
+from utils.redis_cache import get_or_set_cache
 
 
 async def create_link(
     session: AsyncSession, link_data: LinkCreate, user_id: Optional[int] = None
 ):
     """Создание новой ссылки"""
-    link_dict = link_data.model_dump()  # Создаем словарь из модели
-    link_dict["original_url"] = str(  # И модифицируем его
-        link_dict["original_url"]
-    )  # Переводим тип данных с HTTPUrl на строку для корректной работы sqlalchemy
 
-    if not link_dict.get("short_code"):
-        while True:
-            short_code = generaste_short_code(length=settings.ls.shortcode_max_length)
-            # Проверяем, что код не занят
-            existings = await get_link_by_code(session, short_code)
-            if not existings:
-                link_dict["short_code"] = short_code
-                break
-    else:
-        # Проверяем не занят ли кастомны код
-        existing = await get_link_by_code(session, link_dict["short_code"])
-        if existing:
-            raise exc_short_code_existing(shortcode=link_dict["short_code"])
+    async def fetch_from_db():
+        link_dict = link_data.model_dump()  # Создаем словарь из модели
+        link_dict["original_url"] = str(  # И модифицируем его
+            link_dict["original_url"]
+        )  # Переводим тип данных с HTTPUrl на строку для корректной работы sqlalchemy
 
-    if link_data.expires_at:
-        link_dict["expires_at"] = datetime.utcnow() + timedelta(
-            days=link_data.expires_at  # type: ignore
-        )  # Устанавливаем срок жизни ссылки
-    else:
-        link_dict["expires_at"] = None  # По умолчанию - бессрочная ссылка
+        if not link_dict.get("short_code"):
+            while True:
+                short_code = generaste_short_code(
+                    length=settings.ls.shortcode_max_length
+                )
+                # Проверяем, что код не занят
+                existings = await get_link_by_code(session, short_code)
+                if not existings:
+                    link_dict["short_code"] = short_code
+                    break
+        else:
+            # Проверяем не занят ли кастомны код
+            existing = await get_link_by_code(session, link_dict["short_code"])
+            if existing:
+                raise exc_short_code_existing(shortcode=link_dict["short_code"])
 
-    # Явно задаем short_url
-    link_dict["short_url"] = (
-        f"http://{settings.run.host}:{settings.run.port}/{link_dict['short_code']}"
-    )
+        if link_data.expires_at:
+            link_dict["expires_at"] = datetime.utcnow() + timedelta(
+                days=link_data.expires_at  # type: ignore
+            )  # Устанавливаем срок жизни ссылки
+        else:
+            link_dict["expires_at"] = None  # По умолчанию - бессрочная ссылка
 
-    # Добавляем данные о пользователе, если они указаны
-    if user_id is not None:
-        link_dict["user_id"] = user_id
+        # Явно задаем short_url
+        link_dict["short_url"] = (
+            f"http://{settings.run.host}:{settings.run.port}/{link_dict['short_code']}"
+        )
 
-    new_link = Link(**link_dict)
-    session.add(new_link)
-    await session.commit()
+        # Добавляем данные о пользователе, если они указаны
+        if user_id is not None:
+            link_dict["user_id"] = user_id
 
-    return new_link
+        new_link = Link(**link_dict)
+        session.add(new_link)
+        await session.commit()
+
+    cache_key = f"link:{fetch_from_db.link_dict["short_code"]}"
+    data = await get_or_set_cache(cache_key, fetch_from_db)
+    if isinstance(data, dict):
+        return Link(**data)
+    return data
 
 
 async def get_link_by_code(session: AsyncSession, code: str) -> Link | None:
     """Получение ссылки по его короткому коду"""
 
-    stmt = select(Link).where(Link.short_code == code)
-    result = await session.execute(stmt)
-    return result.scalar_one_or_none()
+    cache_key = f"link:{code}"
+
+    async def fetch_from_db():
+
+        stmt = select(Link).where(Link.short_code == code)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    data = await get_or_set_cache(cache_key, fetch_from_db)
+    if isinstance(data, dict):
+        return Link(**data)
+    return data
 
 
 async def get_all_links(session: AsyncSession) -> list[Link]:
@@ -114,31 +134,39 @@ async def increment_click_count(session: AsyncSession, short_code: str) -> bool:
 async def get_links_stats_all(session: AsyncSession) -> LinkStatsAll:
     """Получение общей статистики по всем ссылкам"""
 
-    now = datetime.utcnow()
+    cache_key = f"stats_all:global"
 
-    total_clicks = await session.execute(
-        select(func.sum(Link.clicks_count)).select_from(Link)
-    )
-    total_clicks_sum = total_clicks.scalar_one()
+    async def fetch_from_db():
+        now = datetime.utcnow()
 
-    total_links = await session.execute(select(func.count()).select_from(Link))
-    total_links_count = total_links.scalar_one()
-
-    active_links = await session.execute(
-        select(func.count()).where(
-            Link.expires_at.is_(None) | (Link.expires_at > now),
+        total_clicks = await session.execute(
+            select(func.sum(Link.clicks_count)).select_from(Link)
         )
-    )
-    active_links_count = active_links.scalar_one()
+        total_clicks_sum = total_clicks.scalar_one()
 
-    expired_links_count = total_links_count - active_links_count
+        total_links = await session.execute(select(func.count()).select_from(Link))
+        total_links_count = total_links.scalar_one()
 
-    return LinkStatsAll(
-        total_clicks=total_clicks_sum,
-        total_links=total_links_count,
-        active_links=active_links_count,
-        expired_links=expired_links_count,
-    )
+        active_links = await session.execute(
+            select(func.count()).where(
+                Link.expires_at.is_(None) | (Link.expires_at > now),
+            )
+        )
+        active_links_count = active_links.scalar_one()
+
+        expired_links_count = total_links_count - active_links_count
+
+        return LinkStatsAll(
+            total_clicks=total_clicks_sum,
+            total_links=total_links_count,
+            active_links=active_links_count,
+            expired_links=expired_links_count,
+        )
+
+    data = await get_or_set_cache(cache_key, fetch_from_db)
+    if isinstance(data, dict):
+        return LinkStatsAll(**data)
+    return data
 
 
 async def get_link_stats_top(
@@ -147,25 +175,35 @@ async def get_link_stats_top(
 ) -> list[LinkStatsTop]:
     """Получение топа популярных ссылок"""
 
-    stmt = (
-        select(Link)
-        .where(Link.clicks_count == 0)
-        .order_by(Link.clicks_count.desc())
-        .limit(limit)
-    )
+    cache_key = f"top_links:{limit}"
 
-    result = await session.execute(stmt)
-    links = result.scalars().all()
-
-    return [
-        LinkStatsTop(
-            short_code=link.short_code,
-            original_url=link.original_url,
-            click_count=link.clicks_count,
-            created_at=link.created_at,
+    async def fetch_from_db():
+        stmt = (
+            select(Link)
+            .where(Link.clicks_count == 0)
+            .order_by(Link.clicks_count.desc())
+            .limit(limit)
         )
-        for link in links
-    ]
+
+        result = await session.execute(stmt)
+        links = result.scalars().all()
+
+        return [
+            LinkStatsTop(
+                short_code=link.short_code,
+                original_url=link.original_url,
+                click_count=link.clicks_count,
+                created_at=link.created_at,
+            )
+            for link in links
+        ]
+
+    data = await get_or_set_cache(cache_key, fetch_from_db)
+
+    # Обработка результата: если пришел список dict, превращаем в объекты схемы
+    if isinstance(data, list) and data and isinstance(data[0], dict):
+        return [LinkStatsTop(**item) for item in data]
+    return data
 
 
 async def get_link_sorted_by_user_id(
@@ -177,20 +215,30 @@ async def get_link_sorted_by_user_id(
     if user_id is None:
         return []
 
-    stmt = select(Link).where(Link.user_id == user_id)
-    result = await session.execute(stmt)
-    links = result.scalars().all()
+    cache_key = f"links_user:{user_id}"
 
-    return [
-        LinksMe(
-            short_code=link.short_code,
-            original_url=link.original_url,
-            user_id=link.user_id,
-            created_at=link.created_at,
-            expires_at=link.expires_at,
-        )
-        for link in links
-    ]
+    async def fetch_from_db():
+        stmt = select(Link).where(Link.user_id == user_id)
+        result = await session.execute(stmt)
+        links = result.scalars().all()
+
+        return [
+            LinksMe(
+                short_code=link.short_code,
+                original_url=link.original_url,
+                user_id=link.user_id,
+                created_at=link.created_at,
+                expires_at=link.expires_at,
+            )
+            for link in links
+        ]
+
+    data = await get_or_set_cache(cache_key, fetch_from_db)
+
+    # Обработка результата: если пришел список dict, превращаем в объекты схемы
+    if isinstance(data, list) and data and isinstance(data[0], dict):
+        return [LinksMe(**item) for item in data]
+    return data
 
 
 async def update_link(
@@ -230,6 +278,12 @@ async def update_link(
     await session.execute(stmt)
     await session.commit()
 
+    cache_key = f"link:{short_code}"
+    try:
+        await redis_client.delete(cache_key)
+    except Exception as e:
+        print(exc_redis_cache_val_error(e))
+
     return await get_link_by_code(session, short_code)
 
 
@@ -254,5 +308,11 @@ async def delete_link(
 
     await session.execute(stmt)
     await session.commit()
+
+    cache_key = f"link:{short_code}"
+    try:
+        await redis_client.delete(cache_key)
+    except Exception as e:
+        print(exc_redis_cache_val_error(e))
 
     return True
