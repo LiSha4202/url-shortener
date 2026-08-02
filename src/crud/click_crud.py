@@ -1,5 +1,5 @@
-from datetime import datetime
 from typing import Optional
+import json
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +8,7 @@ from models.clicks_model import ClickLog
 from models.links_model import Link
 
 from core.schemas.click_schema import ClickLogResponse
+from core.redis_client import redis_client
 
 
 async def create_click_log(
@@ -38,7 +39,16 @@ async def get_link_detail_click_history(
 ) -> list[ClickLogResponse]:
     """Получение подробной истории кликов для конкретной ссылки"""
 
-    link_stmt = select(Link).where(Link.short_code == short_code)
+    cache_key = f"click_history:{short_code}"
+
+    # Проверяем кэш
+    cached_data = await redis_client.get(cache_key)
+
+    if cached_data:
+        data_list = json.loads(cached_data)  # Десериализация данных из Redis
+        return [ClickLogResponse(**item) for item in data_list]
+
+    link_stmt = select(Link.id).where(Link.short_code == short_code)
     result = await session.execute(link_stmt)
     link_id = result.scalar_one_or_none()
 
@@ -47,7 +57,7 @@ async def get_link_detail_click_history(
 
     stmt = (
         select(ClickLog)
-        .where(ClickLog.id == link_id.id)
+        .where(ClickLog.id == link_id)
         .order_by(ClickLog.created_at.desc())
         .limit(limit)
     )
@@ -55,4 +65,12 @@ async def get_link_detail_click_history(
     result = await session.execute(stmt)
     logs = result.scalars().all()
 
-    return [ClickLogResponse.model_validate(log) for log in logs]
+    response = [ClickLogResponse.model_validate(log) for log in logs]
+
+    try:
+        serialized_data = json.dumps([log for log in logs])  # Сериализуем данные в JSON
+        await redis_client.setex(cache_key, 300, serialized_data)
+    except Exception as e:
+        print(f"Redis error: {e}")
+
+    return response
