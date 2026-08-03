@@ -227,3 +227,62 @@ class LinkUpdate(BaseModel):
 
     class Config:
         extra = "forbid"
+
+
+class LinkCache(BaseModel):
+    """Схема для кэширования данных ссылки из БД. Соответсвует структуре SQL-модели."""
+
+    id: int = Field(
+        ...,
+        description="ID ссылки",
+    )
+
+    short_code: str = Field(
+        ...,
+        description="Короткий код ссылки",
+    )
+
+    original_url: str = Field(
+        ...,
+        description="Оригинальная ссылка, куда переводит короткая ссылка",
+    )
+
+    short_url: str = Field(
+        ...,
+        description="Полная ссылка с коротким кодом",
+    )
+
+    user_id: Optional[int] = Field(
+        default=None,
+        description="Владелец ссылки",
+    )
+
+    expires_at: Optional[datetime] = Field(
+        default=None,
+        description="Время истечения ссылки",
+    )
+
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="Время создания короткой ссылки",
+    )
+
+    clicks_count: int = Field(
+        ...,
+        description="Общее количество нажатий по ссылке",
+    )
+
+    first_click: Optional[datetime] = Field(
+        ...,
+        description="Время первого нажатия по ссылке",
+    )
+
+    last_click: Optional[datetime] = Field(
+        ...,
+        description="Время последнего нажатия по ссылке",
+    )
+
+    clicks_by_day: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Количество кликов по ссылке по дням",
+    )

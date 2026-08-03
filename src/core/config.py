@@ -87,7 +87,7 @@ class RedisConfig(BaseModel):
     """Настройки Redis"""
 
     # REDIS - URL
-    redis_url: str = "redis://localhcost:6379/0"
+    redis_url: str = "redis://redis:6379/0"
 
 
 class Settings(BaseSettings):

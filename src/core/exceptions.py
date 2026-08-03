@@ -88,4 +88,4 @@ def exc_403_admin_forbidden():
 
 
 def exc_redis_cache_val_error(error):
-    return f"[ID-13] Redis cache validation error: {error}"
+    return f"ERROR:    [ID-13] Redis cache validation error: {error}"

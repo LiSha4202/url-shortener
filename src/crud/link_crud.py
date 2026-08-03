@@ -17,6 +17,7 @@ from core.schemas.link_schema import (
     LinkStatsTop,
     LinksMe,
     LinkUpdate,
+    LinkCache,
 )
 
 from utils.base62 import generaste_short_code
@@ -28,53 +29,42 @@ async def create_link(
 ):
     """Создание новой ссылки"""
 
-    async def fetch_from_db():
-        link_dict = link_data.model_dump()  # Создаем словарь из модели
-        link_dict["original_url"] = str(  # И модифицируем его
-            link_dict["original_url"]
-        )  # Переводим тип данных с HTTPUrl на строку для корректной работы sqlalchemy
+    link_dict = link_data.model_dump()  # Создаем словарь из модели
+    link_dict["original_url"] = str(  # И модифицируем его
+        link_dict["original_url"]
+    )  # Переводим тип данных с HTTPUrl на строку для корректной работы sqlalchemy
+    if not link_dict.get("short_code"):
+        while True:
+            short_code = generaste_short_code(length=settings.ls.shortcode_max_length)
+            # Проверяем, что код не занят
+            existings = await get_link_by_code(session, short_code)
+            if not existings:
+                link_dict["short_code"] = short_code
+                break
+    else:
+        # Проверяем не занят ли кастомны код
+        existing = await get_link_by_code(session, link_dict["short_code"])
+        if existing:
+            raise exc_short_code_existing(shortcode=link_dict["short_code"])
+    if link_data.expires_at:
+        link_dict["expires_at"] = datetime.utcnow() + timedelta(
+            days=link_data.expires_at  # type: ignore
+        )  # Устанавливаем срок жизни ссылки
+    else:
+        link_dict["expires_at"] = None  # По умолчанию - бессрочная ссылка
+    # Явно задаем short_url
+    link_dict["short_url"] = (
+        f"http://{settings.run.host}:{settings.run.port}/{link_dict['short_code']}"
+    )
+    # Добавляем данные о пользователе, если они указаны
+    if user_id is not None:
+        link_dict["user_id"] = user_id
+    new_link = Link(**link_dict)
+    session.add(new_link)
+    await session.commit()
+    await session.refresh(new_link)
 
-        if not link_dict.get("short_code"):
-            while True:
-                short_code = generaste_short_code(
-                    length=settings.ls.shortcode_max_length
-                )
-                # Проверяем, что код не занят
-                existings = await get_link_by_code(session, short_code)
-                if not existings:
-                    link_dict["short_code"] = short_code
-                    break
-        else:
-            # Проверяем не занят ли кастомны код
-            existing = await get_link_by_code(session, link_dict["short_code"])
-            if existing:
-                raise exc_short_code_existing(shortcode=link_dict["short_code"])
-
-        if link_data.expires_at:
-            link_dict["expires_at"] = datetime.utcnow() + timedelta(
-                days=link_data.expires_at  # type: ignore
-            )  # Устанавливаем срок жизни ссылки
-        else:
-            link_dict["expires_at"] = None  # По умолчанию - бессрочная ссылка
-
-        # Явно задаем short_url
-        link_dict["short_url"] = (
-            f"http://{settings.run.host}:{settings.run.port}/{link_dict['short_code']}"
-        )
-
-        # Добавляем данные о пользователе, если они указаны
-        if user_id is not None:
-            link_dict["user_id"] = user_id
-
-        new_link = Link(**link_dict)
-        session.add(new_link)
-        await session.commit()
-
-    cache_key = f"link:{fetch_from_db.link_dict["short_code"]}"
-    data = await get_or_set_cache(cache_key, fetch_from_db)
-    if isinstance(data, dict):
-        return Link(**data)
-    return data
+    return new_link
 
 
 async def get_link_by_code(session: AsyncSession, code: str) -> Link | None:
@@ -88,9 +78,15 @@ async def get_link_by_code(session: AsyncSession, code: str) -> Link | None:
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    data = await get_or_set_cache(cache_key, fetch_from_db)
+    data = await get_or_set_cache(key=cache_key, fetch_func=fetch_from_db)
+
     if isinstance(data, dict):
-        return Link(**data)
+        try:
+            return Link(**data)
+        except Exception as e:
+            print(exc_redis_cache_val_error(e))
+            return None
+
     return data
 
 
@@ -278,11 +274,20 @@ async def update_link(
     await session.execute(stmt)
     await session.commit()
 
-    cache_key = f"link:{short_code}"
-    try:
-        await redis_client.delete(cache_key)
-    except Exception as e:
-        print(exc_redis_cache_val_error(e))
+    cache_keys_to_invalidate = []
+
+    cache_keys_to_invalidate.append(f"link:{short_code}")
+    cache_keys_to_invalidate.append("stats_all:global")
+    cache_keys_to_invalidate.append(f"top_links:10")
+
+    if current_link.user_id is not None:
+        cache_keys_to_invalidate.append(f"links_user:{user_id}")
+
+    for key in cache_keys_to_invalidate:
+        try:
+            await redis_client.delete(key)
+        except Exception as e:
+            print(exc_redis_cache_val_error(e))
 
     return await get_link_by_code(session, short_code)
 
@@ -309,10 +314,19 @@ async def delete_link(
     await session.execute(stmt)
     await session.commit()
 
-    cache_key = f"link:{short_code}"
-    try:
-        await redis_client.delete(cache_key)
-    except Exception as e:
-        print(exc_redis_cache_val_error(e))
+    cache_keys_to_invalidate = []
+
+    cache_keys_to_invalidate.append(f"link:{short_code}")
+    cache_keys_to_invalidate.append("stats_all:global")
+    cache_keys_to_invalidate.append(f"top_links:10")
+
+    if link.user_id is not None:
+        cache_keys_to_invalidate.append(f"links_user:{user_id}")
+
+    for key in cache_keys_to_invalidate:
+        try:
+            await redis_client.delete(key)
+        except Exception as e:
+            print(exc_redis_cache_val_error(e))
 
     return True
