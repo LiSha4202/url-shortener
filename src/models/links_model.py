@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from typing import TYPE_CHECKING
 
 from pydantic import HttpUrl
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey, JSON, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database.base import Base
@@ -25,12 +25,24 @@ class Link(Base):
     original_url: Mapped[str] = mapped_column()
     short_url: Mapped[str] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
-    expires_at: Mapped[datetime] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+    )
 
     # Поля для статистики (Опционально)
-    first_click: Mapped[datetime] = mapped_column(nullable=True)
-    last_click: Mapped[datetime] = mapped_column(nullable=True)
+    first_click: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    last_click: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
     clicks_count: Mapped[int] = mapped_column(default=0)
 
     # JSON-поле для хранения агрегации по дням

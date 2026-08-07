@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict
 
 from pydantic import Field, BaseModel, HttpUrl, computed_field, field_validator
@@ -58,7 +58,7 @@ class LinkResponse(BaseModel):
     )
 
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=datetime.now(timezone.utc),
         description="Время создания короткой ссылки",
     )
 
@@ -188,7 +188,7 @@ class LinksMe(BaseModel):
     )
 
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=datetime.now(timezone.utc),
         description="Время создания короткой ссылки",
     )
 

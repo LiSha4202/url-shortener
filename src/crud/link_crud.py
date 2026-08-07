@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 import json
 
 from typing import Optional
@@ -47,7 +47,7 @@ async def create_link(
         if existing:
             raise exc_short_code_existing(shortcode=link_dict["short_code"])
     if link_data.expires_at:
-        link_dict["expires_at"] = datetime.utcnow() + timedelta(
+        link_dict["expires_at"] = datetime.now(timezone.utc) + timedelta(
             days=link_data.expires_at  # type: ignore
         )  # Устанавливаем срок жизни ссылки
     else:
@@ -108,7 +108,7 @@ async def increment_click_count(session: AsyncSession, short_code: str) -> bool:
 
     # Увеличиваем счётчик перехода по ссылке
     short_code_db_link.clicks_count += 1
-    now = datetime.utcnow()  # Записываем текущее время
+    now = datetime.now(timezone.utc)  # Записываем текущее время
 
     if not short_code_db_link.first_click:  # Если это первое нажатие на ссылку...
         short_code_db_link.first_click = now  # ...то записываем время первого клика
@@ -133,7 +133,7 @@ async def get_links_stats_all(session: AsyncSession) -> LinkStatsAll:
     cache_key = f"stats_all:global"
 
     async def fetch_from_db():
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         total_clicks = await session.execute(
             select(func.sum(Link.clicks_count)).select_from(Link)
@@ -254,7 +254,7 @@ async def update_link(
         values["original_url"] = str(link_update.original_url)
 
     if link_update.expires_at is not None:
-        values["expires_at"] = datetime.utcnow() + timedelta(
+        values["expires_at"] = datetime.now(timezone.utc) + timedelta(
             days=link_update.expires_at
         )
     elif current_link.expires_at is not None:

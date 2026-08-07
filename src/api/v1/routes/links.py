@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, status, Request
@@ -140,7 +140,7 @@ async def redirect_to_original(
         return exc_link_404_not_found()
 
     # Провека на истёкшие ссылки
-    if (db_link.expires_at) and db_link.expires_at < datetime.utcnow():
+    if (db_link.expires_at) and db_link.expires_at < datetime.now(timezone.utc):
         return exc_link_410_gone()
 
     # --- User Agent ---

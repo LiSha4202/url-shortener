@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from typing import TYPE_CHECKING
 
@@ -20,7 +20,10 @@ class User(Base):
     username: Mapped[str] = mapped_column()
     email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+    )
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     links: Mapped[list["Link"]] = relationship(  # Связь Many-to-One
