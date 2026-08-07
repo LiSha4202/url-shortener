@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from typing import Optional
 
 from jose import jwt
@@ -15,9 +15,9 @@ def create_access_jwt_token(
     """Функция создания Access-токена"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=expires_time)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=expires_time)
 
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.jwt.jwt_secret_key, algorithm=jwt_algorithm)
@@ -32,9 +32,9 @@ def create_refresh_jwt_token(
     """Функция создания Refresh-токена"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(days=expires_time)
+        expire = datetime.now(timezone.utc) + timedelta(days=expires_time)
 
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.jwt.jwt_secret_key, algorithm=jwt_algorithm)
