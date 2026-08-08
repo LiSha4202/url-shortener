@@ -258,7 +258,7 @@ class LinkCache(BaseModel):
     )
 
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=datetime.now(timezone.utc),
         description="Время создания короткой ссылки",
     )
 

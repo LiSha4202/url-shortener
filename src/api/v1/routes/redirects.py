@@ -46,7 +46,7 @@ async def redirect_to_original(
         device_type = ua_object.device.family
         browser_name = ua_object.browser.family
 
-    await create_click_log(
+    click_log = await create_click_log(
         session=session,
         link_id=db_link.id,
         device_type=device_type,
@@ -54,11 +54,11 @@ async def redirect_to_original(
         ip_address=ip_address,
     )
 
-    if not create_click_log:
+    if not click_log:
         raise exc_log_click_500_server_error()
 
     # Увеличение счётчика кликов
-    if not increment_click_count(session, short_code):
+    if not await increment_click_count(session, short_code):
         return exc_log_click_500_server_error()
 
     return RedirectResponse(url=db_link.original_url)

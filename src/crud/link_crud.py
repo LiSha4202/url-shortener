@@ -274,6 +274,7 @@ async def update_link(
     cache_keys_to_invalidate.append(f"link:{short_code}")
     cache_keys_to_invalidate.append("stats_all:global")
     cache_keys_to_invalidate.append(f"top_links:10")
+    cache_keys_to_invalidate.append(f"click_history:{short_code}")
 
     if current_link.user_id is not None:
         cache_keys_to_invalidate.append(f"links_user:{user_id}")
@@ -314,6 +315,7 @@ async def delete_link(
     cache_keys_to_invalidate.append(f"link:{short_code}")
     cache_keys_to_invalidate.append("stats_all:global")
     cache_keys_to_invalidate.append(f"top_links:10")
+    cache_keys_to_invalidate.append(f"click_history:{short_code}")
 
     if link.user_id is not None:
         cache_keys_to_invalidate.append(f"links_user:{user_id}")

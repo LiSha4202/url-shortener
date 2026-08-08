@@ -21,6 +21,7 @@ from core.exceptions import (
     exc_link_404_not_found,
     exc_401_user_not_auth,
     exc_403_user_forbidden_to_link,
+    exc_403_admin_forbidden,
 )
 
 from core.security.base_auth import get_current_user
@@ -77,6 +78,9 @@ async def update_link_route(
 ):
     """Обновление ссылки (Оригинальный URL и / или срок жизни)"""
 
+    if not current_user:
+        raise exc_401_user_not_auth()
+
     db_link = await update_link(
         session,
         short_code=short_code,
@@ -129,6 +133,9 @@ async def get_link_stats(
 ):
     """Получение статистики по ссылке"""
 
+    if not current_admin:
+        raise exc_403_admin_forbidden()
+
     db_link = await get_link_by_code(session, str(short_code))
     if not db_link:
         return exc_link_404_not_found()
@@ -148,6 +155,10 @@ async def get_all_links_stats(
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Получение общей статистики по всем ссылкам"""
+
+    if not current_admin:
+        raise exc_403_admin_forbidden()
+
     return await get_links_stats_all(session)
 
 
@@ -158,6 +169,9 @@ async def get_top_links_stats(
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Получение топ популярных ссылок"""
+
+    if not current_admin:
+        raise exc_403_admin_forbidden()
 
     return await get_link_stats_top(session, limit=limit)
 
@@ -184,5 +198,8 @@ async def get_detail_link_stats(
     session: AsyncSession = Depends(db_engine.scoped_session_dependency),
 ):
     """Получение подробной статистики по ссылке"""
+
+    if not current_admin:
+        raise exc_403_admin_forbidden()
 
     return await get_link_detail_click_history(session, str(short_code))
