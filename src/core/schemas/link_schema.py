@@ -247,11 +247,6 @@ class LinkCache(BaseModel):
         description="Оригинальная ссылка, куда переводит короткая ссылка",
     )
 
-    short_url: str = Field(
-        ...,
-        description="Полная ссылка с коротким кодом",
-    )
-
     user_id: Optional[int] = Field(
         default=None,
         description="Владелец ссылки",
