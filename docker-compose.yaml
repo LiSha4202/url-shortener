@@ -9,8 +9,6 @@ services:
     volumes:
       - ./src:/app/src
       - ./alembic:/app/alembic
-    ports:
-      - "8000:8000"
     depends_on:
       pg:
         condition: service_healthy
@@ -54,6 +52,16 @@ services:
     depends_on:
       pg:
         condition: service_healthy
+  
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
 
 volumes:
   postgres_data:
