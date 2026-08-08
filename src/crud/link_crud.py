@@ -77,6 +77,9 @@ async def get_link_by_code(session: AsyncSession, code: str) -> Link | None:
 
     if isinstance(data, dict):
         try:
+            for field in ("expires_at", "created_at", "first_click", "last_click"):
+                if field in data and data[field] is not None:
+                    data[field] = datetime.fromisoformat(data[field])
             return Link(**data)
         except Exception as e:
             print(exc_redis_cache_val_error(e))
