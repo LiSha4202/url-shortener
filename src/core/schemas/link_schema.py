@@ -71,7 +71,7 @@ class LinkResponse(BaseModel):
     @property
     def short_url(self) -> str:
         """Полный URL с короткой ссылкой"""
-        return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
+        return f"{settings.run.public_url}/{self.short_code}"
 
 
 class LinkStats(BaseModel):
@@ -147,7 +147,7 @@ class LinkStatsTop(BaseModel):
     @property
     def short_url(self) -> str:
         """Полный URL с короткой ссылкой"""
-        return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
+        return f"{settings.run.public_url}/{self.short_code}"
 
     click_count: int = Field(
         ...,
@@ -180,7 +180,7 @@ class LinksMe(BaseModel):
     @property
     def short_url(self) -> str:
         """Полный URL с короткой ссылкой"""
-        return f"http://{settings.run.host}:{settings.run.port}/{self.short_code}"
+        return f"{settings.run.public_url}/{self.short_code}"
 
     original_url: str = Field(
         ...,

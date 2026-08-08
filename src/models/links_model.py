@@ -23,7 +23,6 @@ class Link(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     short_code: Mapped[str] = mapped_column(unique=True, index=True)
     original_url: Mapped[str] = mapped_column()
-    short_url: Mapped[str] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

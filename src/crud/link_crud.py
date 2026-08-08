@@ -17,7 +17,6 @@ from core.schemas.link_schema import (
     LinkStatsTop,
     LinksMe,
     LinkUpdate,
-    LinkCache,
 )
 
 from utils.base62 import generaste_short_code
@@ -52,10 +51,6 @@ async def create_link(
         )  # Устанавливаем срок жизни ссылки
     else:
         link_dict["expires_at"] = None  # По умолчанию - бессрочная ссылка
-    # Явно задаем short_url
-    link_dict["short_url"] = (
-        f"http://{settings.run.host}:{settings.run.port}/{link_dict['short_code']}"
-    )
     # Добавляем данные о пользователе, если они указаны
     if user_id is not None:
         link_dict["user_id"] = user_id

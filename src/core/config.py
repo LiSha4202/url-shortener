@@ -8,6 +8,7 @@ class RunConfig(BaseModel):
     host: str = "0.0.0.0"  # IP-адрес сервера
     port: int = 8000  # Порт
     reload: bool = True  # Автоматическая перезагрузка сервера при изменении кода
+    public_url: str = "http:/localhost"
 
 
 class LinkSchemaConfig(BaseModel):
