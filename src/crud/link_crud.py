@@ -17,6 +17,7 @@ from core.schemas.link_schema import (
     LinkStatsTop,
     LinksMe,
     LinkUpdate,
+    LinkCache,
 )
 
 from utils.base62 import generaste_short_code
@@ -62,7 +63,7 @@ async def create_link(
     return new_link
 
 
-async def get_link_by_code(session: AsyncSession, code: str) -> Link | None:
+async def get_link_by_code(session: AsyncSession, code: str) -> LinkCache | None:
     """Получение ссылки по его короткому коду"""
 
     cache_key = f"link:{code}"
@@ -80,7 +81,7 @@ async def get_link_by_code(session: AsyncSession, code: str) -> Link | None:
             for field in ("expires_at", "created_at", "first_click", "last_click"):
                 if field in data and data[field] is not None:
                     data[field] = datetime.fromisoformat(data[field])
-            return Link(**data)
+            return LinkCache(**data)
         except Exception as e:
             print(exc_redis_cache_val_error(e))
             return None
@@ -103,7 +104,7 @@ async def increment_click_count(session: AsyncSession, short_code: str) -> bool:
     now = datetime.now(timezone.utc)
     today = date.today().isoformat()
 
-    # 1. Получаем ссылку
+    # 1. Получаем ссылку напрямую, без использования функций выше
     stmt = select(Link).where(Link.short_code == short_code)
     result = await session.execute(stmt)
     link = result.scalar_one_or_none()
@@ -287,7 +288,7 @@ async def update_link(
         except Exception as e:
             print(exc_redis_cache_val_error(e))
 
-    return await get_link_by_code(session, short_code)
+    return await get_link_by_code(session, short_code)  # type: ignore
 
 
 async def delete_link(
