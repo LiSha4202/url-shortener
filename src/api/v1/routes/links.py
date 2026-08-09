@@ -37,6 +37,7 @@ from crud.link_crud import (
     get_link_sorted_by_user_id,
     update_link,
     delete_link,
+    delete_redis_cache,
 )
 from crud.click_crud import get_link_detail_click_history
 
@@ -203,3 +204,15 @@ async def get_detail_link_stats(
         raise exc_403_admin_forbidden()
 
     return await get_link_detail_click_history(session, str(short_code))
+
+
+@router.get("/stats/delete_cache")
+async def delete_stats_redis_cache(
+    current_admin: User = Depends(get_current_admin_user),
+):
+    """Удаление кэша глобальной статистики Redis"""
+
+    if not current_admin:
+        raise exc_403_admin_forbidden()
+
+    return await delete_redis_cache()

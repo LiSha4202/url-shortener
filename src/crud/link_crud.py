@@ -174,7 +174,7 @@ async def get_link_stats_top(
     async def fetch_from_db():
         stmt = (
             select(Link)
-            .where(Link.clicks_count == 0)
+            .where(Link.clicks_count > 0)
             .order_by(Link.clicks_count.desc())
             .limit(limit)
         )
@@ -322,6 +322,23 @@ async def delete_link(
 
     if link.user_id is not None:
         cache_keys_to_invalidate.append(f"links_user:{user_id}")
+
+    for key in cache_keys_to_invalidate:
+        try:
+            await redis_client.delete(key)
+        except Exception as e:
+            print(exc_redis_cache_val_error(e))
+
+    return True
+
+
+async def delete_redis_cache() -> bool:
+    """Функция удаления кэшей глобальной статистики Redis"""
+
+    cache_keys_to_invalidate = []
+
+    cache_keys_to_invalidate.append("stats_all:global")
+    cache_keys_to_invalidate.append(f"top_links:10")
 
     for key in cache_keys_to_invalidate:
         try:
