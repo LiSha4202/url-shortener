@@ -63,6 +63,19 @@ services:
     depends_on:
       - app
 
+  test-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"
+    depends_on:
+      pg:
+        condition: service_healthy     
+
+        
 volumes:
   postgres_data:
   redis_data:

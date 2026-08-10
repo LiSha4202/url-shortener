@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from src.core.database.base import Base
 
 # Тестовая БД, чтобы не трогать основную
-TEST_DATABASE_URL = "postgresql://user:password@pg:5432/test_db"
+TEST_DATABASE_URL = "postgresql+asyncpg://test:test@test-db:5433/test_db"
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ async def engine():
         await conn.run_sync(Base.metadata.drop_all)  # создание таблиц
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def db_session(engine):
     """Фикстура для создания сессий БД"""
     async with engine.connect() as conn:
@@ -39,3 +39,20 @@ async def db_session(engine):
         yield session
         await session.close()
         await conn.rollback()
+
+
+@pytest.fixture(scope="function")
+async def created_link(db_session):
+    """Создаёт ссылку для тестированияи гарантирует её наличие"""
+    from src.models.links_model import Link
+
+    # Создаём новый объект ссылки
+    new_link = Link(
+        short_code="test123",
+        original_url="https://example.com",
+    )
+    db_session.add(new_link)
+    await db_session.commit()  # Коммитим, чтобы получить ID
+    await db_session.refresh(new_link)
+
+    return new_link

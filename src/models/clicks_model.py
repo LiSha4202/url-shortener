@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from typing import TYPE_CHECKING, Optional
 
@@ -22,7 +22,9 @@ class ClickLog(Base):
     device_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     browser: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow(), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(timezone.utc), index=True
+    )
 
     link: Mapped["Link"] = relationship(back_populates="click_log")
 
