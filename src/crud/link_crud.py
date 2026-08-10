@@ -117,11 +117,21 @@ async def increment_click_count(session: AsyncSession, short_code: str) -> bool:
         link.first_click = now  # ... то это первый
     link.last_click = now  # сохраняем последний
 
-    day_data = link.clicks_by_day or {}  # Получаем данные по дням
+    day_data = (
+        dict(link.clicks_by_day) if link.clicks_by_day else {}
+    )  # Получаем данные по дням
     day_data[today] = day_data.get(today, 0) + 1  # Увеличиваем количество
     link.clicks_by_day = day_data  # Сохранение
 
     await session.commit()
+
+    cache_key = f"link:{short_code}"
+
+    try:
+        await redis_client.delete(cache_key)
+    except Exception as e:
+        print(exc_redis_cache_val_error(e))
+
     return True
 
 
