@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import ValidationError
 
 from src.core.schemas.user_schema import (
@@ -82,7 +82,7 @@ class TestUserSchemas:
             "id": "123",
             "username": "test_user",
             "email": "test@example.com",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "is_admin": False,
         }
         user = UserModel(**model_data)
@@ -155,11 +155,11 @@ class TestLinkSchemas:
             link_data = {
                 "short_code": "abc123",
                 "original_url": "https://example.com",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
             }
             response = LinkResponse(**link_data)
 
-            expected_url = "http://0.0.0.0:8000/abc123"
+            expected_url = "http://localhost/abc123"
             assert response.short_url == expected_url
 
     def test_link_response_default_created_at(self):

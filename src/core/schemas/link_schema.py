@@ -58,7 +58,7 @@ class LinkResponse(BaseModel):
     )
 
     created_at: datetime = Field(
-        default_factory=datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Время создания короткой ссылки",
     )
 
@@ -188,7 +188,7 @@ class LinksMe(BaseModel):
     )
 
     created_at: datetime = Field(
-        default_factory=datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Время создания короткой ссылки",
     )
 
@@ -258,7 +258,7 @@ class LinkCache(BaseModel):
     )
 
     created_at: datetime = Field(
-        default_factory=datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Время создания короткой ссылки",
     )
 
