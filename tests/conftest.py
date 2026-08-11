@@ -1,10 +1,18 @@
+import sys
 import pytest
+
+
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from unittest.mock import patch
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from src.core.database.base import Base
+from core.database.base import Base
+
+import models
 
 # Тестовая БД, чтобы не трогать основную
 TEST_DATABASE_URL = "postgresql+asyncpg://test:test@test-db:5433/test_db"
@@ -34,6 +42,7 @@ async def db_session(engine):
     """Фикстура для создания сессий БД"""
     async with engine.connect() as conn:
         await conn.begin()
+        await conn.begin_nested()
         async_session = async_sessionmaker(bind=conn, expire_on_commit=False)
         session = async_session()
         yield session
@@ -44,7 +53,7 @@ async def db_session(engine):
 @pytest.fixture(scope="function")
 async def created_link(db_session):
     """Создаёт ссылку для тестированияи гарантирует её наличие"""
-    from src.models.links_model import Link
+    from models import Link
 
     # Создаём новый объект ссылки
     new_link = Link(

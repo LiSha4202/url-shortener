@@ -18,6 +18,7 @@ class Link(Base):
     """Шаблон для SQL, Link хранит данные об укороченной ссылке пользователя"""
 
     __tablename__ = "link"  # type: ignore
+    __table_args__ = {"extend_existing": True}
 
     # Базовые поля
     id: Mapped[int] = mapped_column(primary_key=True)

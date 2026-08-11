@@ -1,7 +1,7 @@
 import pytest
-from src.crud.click_crud import create_click_log, get_link_detail_click_history
+from crud.click_crud import create_click_log, get_link_detail_click_history
 
-import tests.conftest
+from tests.conftest import *
 
 
 @pytest.mark.asyncio

@@ -15,6 +15,7 @@ class ClickLog(Base):
     """Модель хранения данных о клике пользователя в БД"""
 
     __tablename__ = "click_log"  # type: ignore
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     link_id: Mapped[int] = mapped_column(ForeignKey("link.id"), nullable=False)
