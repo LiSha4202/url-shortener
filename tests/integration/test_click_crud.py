@@ -1,8 +1,4 @@
 import pytest
-import json
-import sys
-
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from crud.click_crud import create_click_log, get_link_detail_click_history
 from core.schemas.click_schema import ClickLogResponse
@@ -47,7 +43,7 @@ class TestClickCrud:
 
         # Подготовка данных в БД
         # убедимся, что created_link имеет корректный short_code
-        short_code = created_link.shortcode
+        short_code = created_link.short_code
         link_id = created_link.id
 
         # Добавляем один клик лога

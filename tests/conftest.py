@@ -9,22 +9,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-# Мокаем Redis на уровне модуля ДО любого импорта, который может его использовать
-with patch.dict("sys.modules", {"core.redis_client": AsyncMock()}):
-    # Теперь импортируем всё остальное
-    from sqlalchemy.ext.asyncio import (
-        create_async_engine,
-        async_sessionmaker,
-        AsyncSession,
-    )
-    from core.database.base import Base
-    import models  # регистрируем модели
-
-# Убедимся, что мок работает
-import core.redis_client
-
-core.redis_client.redis_client = AsyncMock()
-core.redis_client.redis_client.delete = AsyncMock()
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    async_sessionmaker,
+    AsyncSession,
+)
+from core.database.base import Base
+import models  # регистрируем модели
 
 # Тестовая БД, чтобы не трогать основную
 TEST_DATABASE_URL = "postgresql+asyncpg://test:test@test-db:5432/test_db"
