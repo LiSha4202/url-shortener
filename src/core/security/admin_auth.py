@@ -13,7 +13,7 @@ async def get_current_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """
-    Зависимость, которая проверяет является ли пользователь администратором
+    Зависимость, которая проверяет является ли пользователь администратором.
     Если нет - возвращает ошибку 403 Forbidden.
     """
     if not current_user.is_admin:
