@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, DateTime
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from core.database.base import Base
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class ClickLog(Base):
-    """Модель хранения данных о клике пользователя в БД"""
+    """Модель хранения подробных данных о клике пользователя в БД"""
 
     __tablename__ = "click_log"  # type: ignore
     __table_args__ = {"extend_existing": True}
@@ -24,7 +24,9 @@ class ClickLog(Base):
     browser: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        default=datetime.now(timezone.utc), index=True
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+        index=True,
     )
 
     link: Mapped["Link"] = relationship(back_populates="click_log")

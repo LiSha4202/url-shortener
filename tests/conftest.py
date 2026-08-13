@@ -1,21 +1,33 @@
 import sys
 import pytest
-
+import asyncio
 
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
+# добавляем путь к папке src для импорта
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from unittest.mock import patch
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+# Мокаем Redis на уровне модуля ДО любого импорта, который может его использовать
+with patch.dict("sys.modules", {"core.redis_client": AsyncMock()}):
+    # Теперь импортируем всё остальное
+    from sqlalchemy.ext.asyncio import (
+        create_async_engine,
+        async_sessionmaker,
+        AsyncSession,
+    )
+    from core.database.base import Base
+    import models  # регистрируем модели
 
-from core.database.base import Base
+# Убедимся, что мок работает
+import core.redis_client
 
-import models
+core.redis_client.redis_client = AsyncMock()
+core.redis_client.redis_client.delete = AsyncMock()
 
 # Тестовая БД, чтобы не трогать основную
-TEST_DATABASE_URL = "postgresql+asyncpg://test:test@test-db:5433/test_db"
+TEST_DATABASE_URL = "postgresql+asyncpg://test:test@test-db:5432/test_db"
 
 
 @pytest.fixture
@@ -26,7 +38,7 @@ def jwt_mock_settings():
         yield mock
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 async def engine():
     """Фикстура для создания движка БД"""
     engine = create_async_engine(TEST_DATABASE_URL)  # создание движка
@@ -35,19 +47,19 @@ async def engine():
     yield engine  # возвращаем объект Engine
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)  # создание таблиц
+    await engine.dispose()
 
 
 @pytest.fixture(scope="function")
 async def db_session(engine):
     """Фикстура для создания сессий БД"""
     async with engine.connect() as conn:
-        await conn.begin()
-        await conn.begin_nested()
-        async_session = async_sessionmaker(bind=conn, expire_on_commit=False)
-        session = async_session()
-        yield session
-        await session.close()
-        await conn.rollback()
+        trans = await conn.begin()
+        async_session = AsyncSession(bind=conn, expire_on_commit=False)
+        yield async_session
+        await trans.rollback()
+        await async_session.close()
+        await conn.close()
 
 
 @pytest.fixture(scope="function")
@@ -61,7 +73,7 @@ async def created_link(db_session):
         original_url="https://example.com",
     )
     db_session.add(new_link)
-    await db_session.commit()  # Коммитим, чтобы получить ID
+    await db_session.flush()  # Коммитим, чтобы получить ID
     await db_session.refresh(new_link)
 
     return new_link
