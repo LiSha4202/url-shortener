@@ -50,7 +50,11 @@ async def get_link_detail_click_history(
     cache_key = f"click_history:{short_code}"
 
     # Проверяем кэш
-    cached_data = await redis_client.get(cache_key)
+    cached_data = None
+    try:
+        cached_data = await redis_client.get(cache_key)
+    except Exception as e:
+        print(exc_redis_cache_val_error(e))
 
     if cached_data:
         data_list = json.loads(cached_data)  # Десериализация данных из Redis
