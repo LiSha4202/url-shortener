@@ -68,3 +68,26 @@ async def created_link(db_session):
     await db_session.refresh(new_link)
 
     return new_link
+
+
+@pytest.fixture(scope="function")
+async def mock_link_crud_settings():
+    """Мокает настройки для тестов ссылок"""
+    settings_mock = MagicMock()
+    settings_mock.ls.short_code_max_length = 16
+    settings_mock.ls.short_code_min_length = 4
+    settings_mock.ls.expire_in_days_min_length = 1
+    settings_mock.ls.expire_in_days_max_length = 365
+
+    with patch("src.crud.link_crud.settings", settings_mock):
+        yield settings_mock
+
+
+@pytest.fixture
+async def mock_redis():
+    """Мокает redis_client Для тестов, чтобы не требовался реальный Redis"""
+    mock_redis_isinstance = AsyncMock()
+    mock_redis_isinstance.delete = AsyncMock(return_value=True)
+
+    with patch("src.crud.link_crud.redis_client", mock_redis_isinstance):
+        yield mock_redis_isinstance
