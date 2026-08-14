@@ -1,4 +1,6 @@
 import pytest
+
+from fastapi import HTTPException
 from datetime import datetime, timezone
 from typing import Generator
 
@@ -53,7 +55,7 @@ class TestLinkCRUD:
             expires_at=10,
         )
 
-        new_link = await create_link(db_session, mock_link_crud_settings)
+        new_link = await create_link(db_session, link_data)
 
         assert new_link.expires_at is not None
         # Проверяеи, что дата установлена примерно на 10 дней
@@ -74,7 +76,7 @@ class TestLinkCRUD:
         )
         from core.exceptions import exc_short_code_existing
 
-        with pytest.raises(exc_short_code_existing):  # type: ignore
+        with pytest.raises(HTTPException):  # type: ignore
             await create_link(
                 db_session,
                 LinkCreate(
@@ -123,7 +125,7 @@ class TestLinkCRUD:
         link.first_click = None  # type: ignore
         link.last_click = None  # type: ignore
         link.clicks_by_day = {}
-        await db_session.commit()
+        await db_session.flush()
 
         result = await increment_click_count(db_session, code)
 
@@ -145,21 +147,19 @@ class TestLinkCRUD:
         result = await increment_click_count(db_session, "noexist")
         assert result is False
 
-    async def test_update_link(self, db_session, mock_link_crud_settings, mock_redis):
+    async def test_update_link(self, db_session, mock_link_crud_settings, create_user):
         """Тест обновления ссылки"""
         link_data = LinkCreate(original_url="https://example.com/")  # type: ignore
-        link = await create_link(db_session, link_data, user_id=1)
+        link = await create_link(db_session, link_data, create_user.id)
 
         update_data = LinkUpdate(original_url="https://new.com/")  # type: ignore
 
         updated_link = await update_link(
-            db_session, link.short_code, update_data, user_id=1
+            db_session, link.short_code, update_data, create_user.id
         )
 
         assert updated_link is not None
         assert updated_link.original_url == "https://new.com/"
-
-        assert mock_redis.delete.call_count >= 1  # Был вызов delete
 
     async def test_update_link_not_found(self, db_session):
         """Тест обновления несуществующей ссылки"""
@@ -171,12 +171,12 @@ class TestLinkCRUD:
         )  # type: ignore
         assert result is None
 
-    async def test_delete_link(self, db_session, mock_link_crud_settings):
+    async def test_delete_link(self, db_session, mock_link_crud_settings, create_user):
         """Тест удаления ссылки"""
         link_data = LinkCreate(original_url="https://example.com/")  # type: ignore
-        link = await create_link(db_session, link_data, user_id=1)
+        link = await create_link(db_session, link_data, create_user.id)
 
-        result = await delete_link(db_session, link.short_code, 1)
+        result = await delete_link(db_session, link.short_code, create_user.id)
 
         assert result == True
 

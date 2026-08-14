@@ -21,6 +21,21 @@ import models  # регистрируем модели
 TEST_DATABASE_URL = "postgresql+asyncpg://test:test@test-db:5432/test_db"
 
 
+@pytest.fixture(autouse=True)
+def mock_redis():
+    with (
+        patch("crud.link_crud.redis_client", new_callable=AsyncMock) as mock_link,
+        patch("crud.click_crud.redis_client", new_callable=AsyncMock) as mock_click,
+        patch("utils.redis_cache.redis_client", new_callable=AsyncMock) as mock_cache,
+    ):
+        # Настраиваем все моки одинаково
+        for mock in (mock_link, mock_click, mock_cache):
+            mock.get = AsyncMock(return_value=None)
+            mock.setex = AsyncMock(return_value=True)
+            mock.delete = AsyncMock(return_value=True)
+        yield mock_link  # можно вернуть любой
+
+
 @pytest.fixture
 def jwt_mock_settings():
     """Фикстура для мокирования JWT-настроек"""
@@ -83,11 +98,19 @@ async def mock_link_crud_settings():
         yield settings_mock
 
 
-@pytest.fixture
-async def mock_redis():
-    """Мокает redis_client Для тестов, чтобы не требовался реальный Redis"""
-    mock_redis_isinstance = AsyncMock()
-    mock_redis_isinstance.delete = AsyncMock(return_value=True)
+@pytest.fixture(scope="function")
+async def create_user(db_session):
+    """Создание тестового пользователя"""
+    from models.users_model import User
+    from utils.hash_password import get_password_hash
 
-    with patch("src.crud.link_crud.redis_client", mock_redis_isinstance):
-        yield mock_redis_isinstance
+    new_user = User(
+        username="Test",
+        email="test@example.com",
+        password=get_password_hash("password"),
+    )
+    db_session.add(new_user)
+    await db_session.flush()  # Коммитим, чтобы получить ID
+    await db_session.refresh(new_user)
+
+    return new_user
