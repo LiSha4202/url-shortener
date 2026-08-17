@@ -2,8 +2,6 @@ from datetime import datetime, timezone
 
 from typing import TYPE_CHECKING
 
-from pydantic import HttpUrl
-
 from sqlalchemy import ForeignKey, JSON, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

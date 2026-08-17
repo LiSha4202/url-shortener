@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, func, Boolean
+from sqlalchemy import DateTime, Boolean
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from core.database.base import Base

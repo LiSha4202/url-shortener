@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from fastapi import Depends, APIRouter, status, Response, Body
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings

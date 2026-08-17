@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database.engine import db_engine
-from core.exceptions import exc_401_not_val_cred
 from core.security.jwt_auth import decode_jwt_token
 
 from models.users_model import User

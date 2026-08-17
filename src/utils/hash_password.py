@@ -1,5 +1,4 @@
 from passlib.context import CryptContext
-from hashlib import sha256
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
