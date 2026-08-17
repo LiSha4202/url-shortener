@@ -1,7 +1,14 @@
 from datetime import datetime, timezone
 from typing import Optional, Dict
 
-from pydantic import Field, BaseModel, HttpUrl, computed_field, field_validator
+from pydantic import (
+    Field,
+    BaseModel,
+    HttpUrl,
+    computed_field,
+    field_validator,
+    ConfigDict,
+)
 from pydantic.types import constr
 
 from core.config import settings
@@ -126,8 +133,9 @@ class LinkStatsAll(BaseModel):
         description="Количество просроченых (удаленных) ссылок",
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class LinkStatsTop(BaseModel):
@@ -159,8 +167,9 @@ class LinkStatsTop(BaseModel):
         description="Дата создания ссылки",
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class LinksMe(BaseModel):
@@ -197,8 +206,9 @@ class LinksMe(BaseModel):
         description="(необязательно) Время истечения срока действия",
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class LinkUpdate(BaseModel):
@@ -225,8 +235,7 @@ class LinkUpdate(BaseModel):
                 raise exc_400_bad_req_exp_link()
         return v
 
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
 
 class LinkCache(BaseModel):

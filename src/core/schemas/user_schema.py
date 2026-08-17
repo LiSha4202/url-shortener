@@ -2,7 +2,7 @@ from datetime import datetime
 
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 from core.config import settings
 
@@ -76,9 +76,10 @@ class UserResponse(BaseModel):
         description="Является ли пользователь админом",
     )
 
-    class Config:
-        from_attributes = True  # В Pydantic V2: вместо orm_mode=True
-        # Модель может быть создана из ORM-объекта (Из user_model для БД)
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+    # Модель может быть создана из ORM-объекта (Из user_model для БД)
 
 
 class UserPatchResponse(BaseModel):
@@ -119,5 +120,6 @@ class UserUpdate(BaseModel):
         description="Новый пароль",
     )
 
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(
+        extra="forbid",
+    )

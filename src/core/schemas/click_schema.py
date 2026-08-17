@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, IPvAnyAddress
+from pydantic import BaseModel, Field, IPvAnyAddress, ConfigDict
 
 
 class ClickLogResponse(BaseModel):
@@ -33,5 +33,6 @@ class ClickLogResponse(BaseModel):
         description="Время создания записи",
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
