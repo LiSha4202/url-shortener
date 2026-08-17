@@ -4,6 +4,7 @@ import asyncio
 
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
+from httpx import ASGITransport, AsyncClient
 
 # добавляем путь к папке src для импорта
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -14,6 +15,9 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     AsyncSession,
 )
+from core.database.engine import db_engine
+from main import app
+
 from core.database.base import Base
 import models  # регистрируем модели
 
@@ -110,7 +114,28 @@ async def create_user(db_session):
         password=get_password_hash("password"),
     )
     db_session.add(new_user)
-    await db_session.flush()  # Коммитим, чтобы получить ID
+    await db_session.flush()
     await db_session.refresh(new_user)
 
     return new_user
+
+
+@pytest.fixture(scope="function")
+async def client(engine):
+    # Переопределяем зависимость, чтобы эндпоинты использовали сессии от тестового движка
+    async def override_scoped_session():
+        # Используем стандартный async_sessionmaker от движка
+        async_session = async_sessionmaker(bind=engine, expire_on_commit=False)
+        async with async_session() as session:
+            yield session
+
+    app.dependency_overrides[db_engine.scoped_session_dependency] = (
+        override_scoped_session
+    )
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+    # Убираем переопределение после теста
+    app.dependency_overrides.pop(db_engine.scoped_session_dependency, None)

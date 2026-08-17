@@ -89,3 +89,10 @@ def exc_403_admin_forbidden():
 
 def exc_redis_cache_val_error(error):
     return f"ERROR:    [ID-13] Redis cache validation error: {error}"
+
+
+def exc_409_user_email_already_exists():
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="User email already exists [ID-14]",
+    )

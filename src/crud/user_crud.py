@@ -2,6 +2,8 @@ from sqlalchemy import select, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.users_model import User  # SQLAlchemy модель
+
+from core.exceptions import exc_409_user_email_already_exists
 from core.schemas.user_schema import UserCreate, UserUpdate  # Pydantic схема
 
 from utils.hash_password import get_password_hash
@@ -9,6 +11,11 @@ from utils.hash_password import get_password_hash
 
 async def create_user(session: AsyncSession, user: UserCreate):
     """Создание нового пользователя"""
+
+    # Проверка на существующий email
+    existing_user = await get_user_by_email(session, user.email)
+    if existing_user:
+        raise exc_409_user_email_already_exists()
 
     new_user = User(
         username=user.username,
