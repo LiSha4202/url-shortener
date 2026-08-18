@@ -75,6 +75,16 @@ services:
       pg:
         condition: service_healthy     
 
+  tests:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    environment:
+      APP_CONFIG__DB__URL: postgresql+asyncpg://user:password@pg:5432/shortener
+    depends_on:
+      pg:
+        condition: service_healthy
+    command: python -m pytest -v --maxfail=1
         
 volumes:
   postgres_data:
