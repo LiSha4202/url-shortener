@@ -7,6 +7,7 @@ from sqlalchemy import select, func, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.links_model import Link
+from models.clicks_model import ClickLog
 
 from core.redis_client import redis_client
 from core.config import settings
@@ -316,12 +317,8 @@ async def delete_link(
     if link.user_id != user_id:
         return False
 
-    stmt = delete(Link).where(
-        and_(Link.short_code == short_code, Link.user_id == user_id)
-    )
-
-    await session.execute(stmt)
-    await session.commit()
+    delete_click_stmt = delete(ClickLog).where(ClickLog.link_id == link.id)
+    await session.execute(delete_click_stmt)
 
     cache_keys_to_invalidate = []
 
@@ -329,9 +326,17 @@ async def delete_link(
     cache_keys_to_invalidate.append("stats_all:global")
     cache_keys_to_invalidate.append(f"top_links:10")
     cache_keys_to_invalidate.append(f"click_history:{short_code}")
+    cache_keys_to_invalidate.append(f"click_history:{link.id}")
 
     if link.user_id is not None:
         cache_keys_to_invalidate.append(f"links_user:{user_id}")
+
+    stmt = delete(Link).where(
+        and_(Link.short_code == short_code, Link.user_id == user_id)
+    )
+
+    await session.execute(stmt)
+    await session.commit()
 
     for key in cache_keys_to_invalidate:
         try:
