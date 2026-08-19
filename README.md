@@ -52,34 +52,36 @@
 ---
 
 ## 📁 Структура проекта
-URL-Shortener/
-├── .env # переменные окружения
-├── pytest.ini # настройки Pytest
-├── pyproject.toml # зависимости Poetry
-├── Dockerfile # сборка образа приложения
-├── docker-compose.yaml # сервисы (app, pg, redis, pgamin, nginx, test-db)
-├── nginx/ # конфигурация Nginx
-├── alembic/ # миграции БД
-│ └── versions/
-├── src/
-│ ├── api/ # роутеры FastAPI
-│ ├── core/ # ядро приложения
-│ │ ├── database/ # двигатель БД и базовая модель
-│ │ ├── schemas/ # Pydantic-схемы
-│ │ ├── security/ # аутентификация (JWT, роли)
-│ │ ├── config.py # настройки из переменных окружения
-│ │ ├── exceptions.py # обработчики ошибок
-│ │ └── redis_client.py # клиент Redis
-│ ├── crud/ # бизнес-логика (CRUD операции)
-│ ├── models/ # SQLAlchemy модели
-│ ├── utils/ # утилиты (Base62, хеширование, кеширование)
-│ └── main.py # точка входа приложения
-├── tests/
-│ ├── unit/ # тесты отдельных функций
-│ ├── integration/ # тесты взаимодействия с БД
-│ └── e2e/ # End-to-End тесты API
 
----
+```plaintext
+URL-Shortener/
+├── .env                         # переменные окружения
+├── pytest.ini                   # настройки Pytest
+├── pyproject.toml               # зависимости Poetry
+├── Dockerfile                   # сборка образа приложения
+├── docker-compose.yaml          # сервисы (app, pg, redis, pgadmin, nginx, test-db)
+├── nginx/                       # конфигурация Nginx
+├── alembic/                     # миграции БД
+│   └── versions/
+├── src/
+│   ├── api/                     # роутеры FastAPI
+│   ├── core/                    # ядро приложения
+│   │   ├── database/            # двигатель БД и базовая модель
+│   │   ├── schemas/             # Pydantic-схемы
+│   │   ├── security/            # аутентификация (JWT, роли)
+│   │   ├── config.py            # настройки из переменных окружения
+│   │   ├── exceptions.py        # обработчики ошибок
+│   │   └── redis_client.py      # клиент Redis
+│   ├── crud/                    # бизнес-логика (CRUD операции)
+│   ├── models/                  # SQLAlchemy модели
+│   ├── utils/                   # утилиты (Base62, хеширование, кеширование)
+│   └── main.py                  # точка входа приложения
+├── tests/
+│   ├── unit/                    # тесты отдельных функций
+│   ├── integration/             # тесты взаимодействия с БД
+│   └── e2e/                     # End-to-End тесты API
+└── ...
+```
 
 ## 🚀 Быстрый старт
 
@@ -88,40 +90,38 @@ URL-Shortener/
 - (Опционально) Python 3.13+ и Poetry для локального запуска без Docker
 
 ### Переменные окружения
+
 Создайте файл `.env` в корне проекта со следующим содержанием (пример):
 
-``env``
+```env
 APP_CONFIG__DB__URL=postgresql+asyncpg://user:password@pg:5432/shortener
 APP_CONFIG__JWT__JWT_SECRET_KEY=ваш_секретный_ключ
 APP_CONFIG__RDS__REDIS_URL=redis://redis:6379/0
-
-# Для тестов (используется в tests/conftest.py)
-TEST_DATABASE_URL=postgresql+asyncpg://test:test@test-db:5432/test_db
+```
 
 ### Запуск через Docker (рекомендованный способ)
+
 Клонируйте репозиторий:
 
-**bash**
+```bash
 git clone https://github.com/LiSha4202/url-shortener.git
-
 cd url-shortener
+```
 
 Запустите все сервисы:
 
-**bash**
+```bash
 docker-compose up -d
+```
 
 При первом запуске автоматически:
-
 - установятся зависимости через Poetry,
-
 - применятся миграции Alembic,
-
 - поднимутся PostgreSQL, Redis, Nginx и само приложение.
 
-Приложение будет доступно по адресу: http://localhost (Nginx проксирует на FastAPI).
+Приложение будет доступно по адресу: [http://localhost](http://localhost) (Nginx проксирует на FastAPI).
 
-### Интерактивная документация API: http://localhost/docs
+Интерактивная документация API: [http://localhost/docs](http://localhost/docs)
 
 # 📡 API Документация
 После запуска сервиса документация доступна по адресу:
@@ -155,7 +155,7 @@ http://localhost/docs (или /redoc для альтернативного ст�
 - test@example.com
 - testpassword
 
---- не влияет на создание ссылки, т.е. на роут /links/create - Create New Link, можно и без входа создавать ссылку, соответствует смыслу проекта 🙃
+Не влияет на создание ссылки, т.е. на роут /links/create - Create New Link, можно и без входа создавать ссылку, соответствует смыслу проекта 🙃
 
 ### 📍 После обновления данных пользователя
 После обновления данных пользователя, а именно `ПОЧТА или ПАРОЛЬ`, нужно будет перелогинится, потому что данные, которые вы раннее вводили в логин, уже недействительны, потому что вы их изменили. На имя пользователя это не распространяется, т.е. если изменили только имя пользователя, не нужно перелогинится, оно не влияет на авторизацию.
@@ -166,16 +166,21 @@ http://localhost/docs (или /redoc для альтернативного ст�
 
 ### ⏲️ Бессрочная ссылка
 Во премя создания ссылки автоматически подставляется срок жизни `"expires_at": 1`, это значит что ссылка будет "жить" один день, чтобы сделать её бессрочной, достаточно удалить строку `"expires_at": 1`, т.е.:
-
-  `Было`:                                                    
+```json
+  Было:   
+  {                                                 
   "original_url": "https://example.com/",                 
   "short_code": "g9QN_1NNslfm2v",                         
-  "expires_at": 0                          
-
-  `Стало`:
+  "expires_at": 1                          
+  }
+```
+```json
+  Стало:
+  {
   "original_url": "https://example.com/",
   "short_code": "g9QN_1NNslfm2v"  **<-- запятую тоже нужно удалить**
-
+  }
+```
 
 ### 🧪 Тестирование
 Тесты разделены на три категории и запускаются автоматически в изолированном контейнере.
