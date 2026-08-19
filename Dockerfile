@@ -15,11 +15,14 @@ COPY poetry.lock ./
 
 RUN poetry install --no-root
 
+RUN apt-get update && apt-get install -y dos2unix && rm -rf /var/lib/apt/lists/*
+
 COPY . . 
 
 WORKDIR /app
 
 RUN find . -name "*.sh" -exec sed -i 's/\r$//' {} \;
+RUN head -n 1 prestart.sh | cat -v
 
 RUN chmod +x prestart.sh
 
