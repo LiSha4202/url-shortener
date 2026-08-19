@@ -18,6 +18,9 @@ RUN poetry install --no-root
 COPY . . 
 
 WORKDIR /app
+
+RUN find . -name "*.sh" -exec sed -i 's/\r$//' {} \;
+
 RUN chmod +x prestart.sh
 
 ENTRYPOINT ["./prestart.sh"]
