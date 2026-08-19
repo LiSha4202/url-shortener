@@ -89,15 +89,6 @@ URL-Shortener/
 - Docker и Docker Compose (рекомендуется)
 - (Опционально) Python 3.13+ и Poetry для локального запуска без Docker
 
-### Переменные окружения
-
-Создайте файл `.env` в корне проекта со следующим содержанием (пример):
-
-```env
-APP_CONFIG__DB__URL=postgresql+asyncpg://user:password@pg:5432/shortener
-APP_CONFIG__JWT__JWT_SECRET_KEY=ваш_секретный_ключ
-APP_CONFIG__RDS__REDIS_URL=redis://redis:6379/0
-```
 
 ### Запуск через Docker (рекомендованный способ)
 
@@ -107,6 +98,24 @@ APP_CONFIG__RDS__REDIS_URL=redis://redis:6379/0
 git clone https://github.com/LiSha4202/url-shortener.git
 cd url-shortener
 ```
+### Переменные окружения
+
+Создайте файл `.env` в корне проекта со следующим содержанием (пример):
+
+```env
+APP_CONFIG__DB__URL=postgresql+asyncpg://user:password@pg:5432/shortener
+APP_CONFIG__JWT__JWT_SECRET_KEY=ваш_секретный_ключ
+APP_CONFIG__RDS__REDIS_URL=redis://redis:6379/0
+```
+JWT-ключ можно сгенерировать разными способами, можно к примеру либо через OpenSSL, если он у вас установлен:
+```OpenSSL
+openssl rand -base64 32
+```
+Либо можно использовать Python:
+```Python
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
 
 Запустите все сервисы:
 
