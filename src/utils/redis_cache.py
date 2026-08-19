@@ -8,16 +8,24 @@ from core.redis_client import redis_client
 
 def _json_serializer(obj: Any) -> Any:
     """Вспомогательная функция для сериализации сложных типов в JSON"""
-    if isinstance(obj, (datetime, date)):
-        return obj.isoformat()
-    if isinstance(obj, dict):
-        return {k: _json_serializer(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_json_serializer(i) for i in obj]
-    if hasattr(obj, "__dict__"):
+    if isinstance(
+        obj, (datetime, date)
+    ):  # Если объект является экземпляром класса даты или времени,
+        return obj.isoformat()  # возвращаем его строковое представление
+    if isinstance(obj, dict):  # если это словарь...
+        return {
+            k: _json_serializer(v) for k, v in obj.items()
+        }  # ...преобразуем все значения в JSON-формат
+    if isinstance(obj, list):  # если список ...
+        return [
+            _json_serializer(i) for i in obj
+        ]  # ... преобразовать каждый элемент списка
+    if hasattr(obj, "__dict__"):  # иначе...
         # Если вдруг попался другой объект с __dict__, пробуем преобразовать его словарь
-        return _json_serializer(
-            {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
+        return _json_serializer(  # и вернуть результат
+            {
+                k: v for k, v in obj.__dict__.items() if not k.startswith("_")
+            }  # исключаем приватные поля
         )
     return obj
 

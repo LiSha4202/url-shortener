@@ -13,10 +13,10 @@ def create_access_jwt_token(
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     """Функция создания Access-токена"""
-    to_encode = data.copy()
-    if expires_delta:
+    to_encode = data.copy()  # копируем словарь
+    if expires_delta:  # если есть дельта времени, то добавляем ее к текущему моменту
         expire = datetime.now(timezone.utc) + expires_delta
-    else:
+    else:  # иначе ставим время жизни токенов в зависимости от переданного числа
         expire = datetime.now(timezone.utc) + timedelta(minutes=expires_time)
 
     to_encode.update({"exp": expire})
@@ -30,6 +30,7 @@ def create_refresh_jwt_token(
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     """Функция создания Refresh-токена"""
+    # Работает таким же способом, как и функция выше, разница в timedelta(Здесь days, там minutes)
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta

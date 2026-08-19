@@ -11,17 +11,19 @@ def encode_base62(num: int) -> str:
 
     base = len(BASE62_ALPHABET)
     result = []
-    while num > 0:
-        num, remainder = divmod(num, base)
-        result.append(BASE62_ALPHABET[remainder])
-    return "".join(reversed(result))
+    while num > 0:  # 3. Снова используем полученное целое число и повторяем действия
+        num, remainder = divmod(num, base)  # 1. Делим на основание и получаем остаток
+        result.append(
+            BASE62_ALPHABET[remainder]
+        )  # 2.  Добавляем символ из алфавита по счёту, используя остаток
+    return "".join(reversed(result))  # 4. Возвращяем перевёрнутый результат
 
 
 def generaste_short_code(length: int = 6) -> str:
     """Генерирует короткий код через Base62"""
     # Генерируем случайное число
     random_num = secrets.randbelow(62**length)
-    code = encode_base62(random_num)
+    code = encode_base62(random_num)  # И генерируем код через Base62 функцию
 
     # Дополняем до нужной длины
     return code.zfill(length)
