@@ -21,9 +21,6 @@ COPY . .
 
 WORKDIR /app
 
-RUN find . -name "*.sh" -exec sed -i 's/\r$//' {} \;
-RUN head -n 1 prestart.sh | cat -v
-
 RUN chmod +x prestart.sh
 
 ENTRYPOINT ["./prestart.sh"]
