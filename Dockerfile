@@ -21,6 +21,7 @@ COPY . .
 
 WORKDIR /app
 
+RUN find . -name "*.sh" -exec dos2unix {} \;
 RUN chmod +x prestart.sh
 
 ENTRYPOINT ["./prestart.sh"]
